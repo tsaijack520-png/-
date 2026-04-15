@@ -1,0 +1,112 @@
+import { useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
+
+import {
+  categoryContents,
+  roleFilters,
+  sceneFilters,
+  sortFilters,
+} from '../data/mockData'
+import { FilterChip, ListCard } from '../components/ContentBlocks'
+import { SectionHeader } from '../components/SectionHeader'
+import { TopBar } from '../components/TopBar'
+
+export function CategoryPage() {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const roleParam = searchParams.get('role')
+  const sceneParam = searchParams.get('scene')
+  const sortParam = searchParams.get('sort')
+
+  const activeRole = roleFilters.includes(roleParam as (typeof roleFilters)[number])
+    ? (roleParam as (typeof roleFilters)[number])
+    : '女友音'
+  const activeScene = sceneFilters.includes(sceneParam as (typeof sceneFilters)[number])
+    ? (sceneParam as (typeof sceneFilters)[number])
+    : '睡前陪伴'
+  const activeSort = sortFilters.includes(sortParam as (typeof sortFilters)[number])
+    ? (sortParam as (typeof sortFilters)[number])
+    : '最热'
+
+  const filteredContents = useMemo(() => {
+    return categoryContents.filter((item) => {
+      const roleMatch = item.role === activeRole
+      const sceneMatch = item.scene === activeScene
+      const sortMatch = item.sortTags.includes(activeSort)
+
+      return roleMatch && sceneMatch && sortMatch
+    })
+  }, [activeRole, activeScene, activeSort])
+
+  const visibleContents = filteredContents.length > 0 ? filteredContents : categoryContents
+
+  function updateFilter(key: 'role' | 'scene' | 'sort', value: string) {
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.set(key, value)
+    setSearchParams(nextParams)
+  }
+
+  return (
+    <div className="page">
+      <TopBar />
+
+      <section className="page-section page-section--compact">
+        <SectionHeader title="角色标签" moreTo="/category/filter/role" />
+        <div className="chip-row">
+          {roleFilters.map((label) => (
+            <FilterChip
+              key={label}
+              label={label}
+              active={label === activeRole}
+              onClick={() => updateFilter('role', label)}
+            />
+          ))}
+        </div>
+      </section>
+
+      <section className="page-section page-section--compact">
+        <SectionHeader title="场景标签" moreTo="/category/filter/scene" />
+        <div className="chip-row">
+          {sceneFilters.map((label) => (
+            <FilterChip
+              key={label}
+              label={label}
+              active={label === activeScene}
+              onClick={() => updateFilter('scene', label)}
+            />
+          ))}
+        </div>
+      </section>
+
+      <section className="page-section page-section--compact">
+        <SectionHeader title="排序筛选" moreTo="/category/filter/sort" />
+        <div className="chip-row">
+          {sortFilters.map((label) => (
+            <FilterChip
+              key={label}
+              label={label}
+              active={label === activeSort}
+              onClick={() => updateFilter('sort', label)}
+            />
+          ))}
+        </div>
+      </section>
+
+      <section className="page-section page-section--compact">
+        <SectionHeader title="匹配内容" actionLabel="" />
+        <div className="list-stack">
+          {visibleContents.map((item) => (
+            <ListCard
+              key={item.id}
+              title={item.title}
+              meta={item.meta}
+              badge={item.badge}
+              badgeTone={item.badgeTone}
+              tone={item.tone}
+              to={`/content/${item.id}`}
+            />
+          ))}
+        </div>
+      </section>
+    </div>
+  )
+}

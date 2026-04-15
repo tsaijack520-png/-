@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>耳边 - Netflix风格修订原型</title>
+  <style>
+    :root {
+      --bg: #0b0c14;
+      --panel: #131625;
+      --panel-2: #1a1f33;
+      --line: #262b43;
+      --text: #f6f3fb;
+      --sub: #c3bed4;
+      --muted: #8a8499;
+      --pink: #ef7aa8;
+      --purple: #9c8cff;
+      --gold: #f2c07b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+      background: linear-gradient(180deg, #08090f 0%, #111423 100%);
+      color: var(--text);
+    }
+    .wrap {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 28px 24px 56px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+    }
+    .intro {
+      color: var(--sub);
+      line-height: 1.7;
+      margin-bottom: 24px;
+      max-width: 980px;
+    }
+    .screens {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      align-items: start;
+    }
+    .screen-block { display: flex; flex-direction: column; gap: 8px; }
+    .screen-title { font-size: 18px; font-weight: 700; }
+    .screen-desc { font-size: 13px; line-height: 1.6; color: var(--sub); min-height: 42px; }
+    .phone {
+      width: 390px;
+      max-width: 100%;
+      min-height: 844px;
+      background: var(--bg);
+      border: 1px solid #2d3248;
+      border-radius: 34px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 32px 72px rgba(0,0,0,.45);
+    }
+    .inner { padding: 16px 16px 92px; }
+    .status {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .brand { font-size: 23px; font-weight: 700; }
+    .mini-avatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: linear-gradient(135deg, #f4a3bf, #9a89ff);
+      border: 1px solid rgba(255,255,255,.14);
+    }
+    .hero {
+      height: 198px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(239,122,168,.35), rgba(156,140,255,.26));
+      border: 1px solid rgba(255,255,255,.06);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 14px auto auto 14px;
+      width: 96px;
+      height: 96px;
+      border-radius: 18px;
+      border: 1px dashed rgba(255,255,255,.22);
+      opacity: .8;
+    }
+    .hero-label {
+      font-size: 11px;
+      color: #ffe2ef;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      position: relative;
+      z-index: 1;
+    }
+    .hero-title { font-size: 20px; font-weight: 700; position: relative; z-index: 1; }
+    .hero-sub {
+      font-size: 13px;
+      color: var(--sub);
+      line-height: 1.5;
+      margin-top: 6px;
+      position: relative;
+      z-index: 1;
+    }
+    .hero-actions { display: flex; gap: 8px; margin-top: 12px; position: relative; z-index: 1; }
+    .btn {
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid transparent;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn.primary { background: #fff; color: #111; }
+    .btn.dark { background: rgba(255,255,255,.08); color: var(--text); border-color: rgba(255,255,255,.08); }
+    .btn.pink { background: var(--pink); color: white; }
+    .row-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 14px 0 10px;
+    }
+    .row-title { font-size: 16px; font-weight: 700; }
+    .row-link { font-size: 12px; color: var(--sub); }
+    .grid2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .tile {
+      min-height: 104px;
+      border-radius: 16px;
+      padding: 12px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      position: relative;
+      overflow: hidden;
+    }
+    .tile::before {
+      content: "";
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      border: 1px dashed rgba(255,255,255,.18);
+    }
+    .tile.p1 { background: linear-gradient(135deg, rgba(239,122,168,.18), rgba(239,122,168,.06)); }
+    .tile.p2 { background: linear-gradient(135deg, rgba(156,140,255,.16), rgba(156,140,255,.06)); }
+    .tile.p3 { background: linear-gradient(135deg, rgba(242,192,123,.16), rgba(242,192,123,.06)); }
+    .tile.p4 { background: linear-gradient(135deg, rgba(121,179,255,.14), rgba(121,179,255,.05)); }
+    .tile-title { font-size: 15px; font-weight: 700; }
+    .tile-sub { color: var(--sub); font-size: 12px; margin-top: 4px; }
+    .poster-row {
+      display: flex;
+      gap: 10px;
+      overflow: hidden;
+    }
+    .poster {
+      width: 122px;
+      flex: 0 0 122px;
+    }
+    .poster-cover {
+      width: 122px;
+      height: 156px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(239,122,168,.45), rgba(156,140,255,.35));
+      border: 1px solid rgba(255,255,255,.08);
+      position: relative;
+      overflow: hidden;
+    }
+    .poster-cover::after {
+      content: "";
+      position: absolute;
+      inset: 16px;
+      border-radius: 12px;
+      border: 1px dashed rgba(255,255,255,.2);
+    }
+    .poster-title { font-size: 13px; font-weight: 700; margin-top: 8px; }
+    .poster-meta { color: var(--sub); font-size: 11px; margin-top: 4px; line-height: 1.5; }
+    .series-card {
+      display: grid;
+      grid-template-columns: 72px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    .series-cover {
+      width: 72px;
+      height: 72px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(239,122,168,.45), rgba(156,140,255,.3));
+      border: 1px solid rgba(255,255,255,.08);
+    }
+    .series-title { font-size: 14px; font-weight: 700; }
+    .series-meta { font-size: 12px; color: var(--sub); margin-top: 4px; line-height: 1.5; }
+    .arrow { color: var(--sub); font-size: 16px; }
+    .detail-cover {
+      height: 230px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(239,122,168,.35), rgba(156,140,255,.24));
+      border: 1px solid rgba(255,255,255,.06);
+      margin-bottom: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+    .detail-cover::after {
+      content: "";
+      position: absolute;
+      inset: 24px;
+      border-radius: 14px;
+      border: 1px dashed rgba(255,255,255,.18);
+    }
+    .meta-row { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+    .tag {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: var(--panel-2);
+      color: var(--text);
+    }
+    .detail-text { color: var(--sub); font-size: 13px; line-height: 1.7; }
+    .action-stack { display: grid; gap: 8px; margin: 14px 0; }
+    .stack-btn {
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-weight: 700;
+      font-size: 14px;
+      text-align: center;
+    }
+    .stack-btn.primary { background: #fff; color: #111; }
+    .stack-btn.secondary { background: var(--panel); border: 1px solid var(--line); color: var(--text); }
+    .sticky {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      background: rgba(10,11,17,.96);
+      border-top: 1px solid var(--line);
+      padding: 10px 12px 18px;
+    }
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.2fr 1fr;
+      align-items: end;
+      gap: 4px;
+    }
+    .tab {
+      text-align: center;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .tab.active { color: var(--text); }
+    .tab-core {
+      transform: translateY(-8px);
+    }
+    .tab-core .core-btn {
+      width: 58px; height: 58px; border-radius: 50%;
+      margin: 0 auto 4px;
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      border: 3px solid #111420;
+      box-shadow: 0 10px 28px rgba(239,122,168,.26);
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 13px; font-weight: 700;
+    }
+    .profile-card {
+      background: linear-gradient(135deg, rgba(239,122,168,.15), rgba(156,140,255,.12));
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 18px;
+      padding: 14px;
+      display: grid;
+      grid-template-columns: 52px 1fr;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .profile-avatar {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: linear-gradient(135deg, #f4a3bf, #9a89ff);
+    }
+    .menu-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 10px;
+    }
+    .menu-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+    }
+    .note {
+      margin-top: 24px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--line);
+      color: var(--sub);
+      line-height: 1.7;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>耳边修订版 UI 原型（Netflix 风格取向）</h1>
+    <div class="intro">
+      这一版根据你的反馈重新调整：首页不再使用“对着用户说话”的入口，不把 AI 卡直接塞在内容流中，不在首页底部硬插 VIP；结构改为更偏内容平台浏览式体验，参考 Netflix 的首页组织方式，AI 放到底部导航中间核心位。
+    </div>
+
+    <div class="screens">
+      <div class="screen-block">
+        <div class="screen-title">首页 V2｜内容平台化首页</div>
+        <div class="screen-desc">只保留一个顶部轻操作，不再做“右上角搜索 + 搜索框”双入口。首屏先是可运营 Banner，再是 2x2 专区入口、推荐内容流、连载专区。</div>
+        <div class="phone">
+          <div class="inner">
+            <div class="status"><span>9:41</span><span>5G 100%</span></div>
+            <div class="topbar">
+              <div class="brand">耳边</div>
+              <div class="mini-avatar"></div>
+            </div>
+
+            <div class="hero">
+              <div class="hero-label">运营 Banner 1 / 5</div>
+              <div class="hero-title">今晚别挂电话</div>
+              <div class="hero-sub">连载更新中。每天深夜，她都会准时打给你。</div>
+              <div class="hero-actions">
+                <div class="btn primary">立即播放</div>
+                <div class="btn dark">加入片单</div>
+              </div>
+            </div>
+
+            <div class="row-head">
+              <div class="row-title">ASMR 专区</div>
+              <div class="row-link">查看全部</div>
+            </div>
+            <div class="grid2">
+              <div class="tile p1">
+                <div class="tile-title">睡前陪伴</div>
+                <div class="tile-sub">适合深夜戴上耳机慢慢听</div>
+              </div>
+              <div class="tile p2">
+                <div class="tile-title">耳虫</div>
+                <div class="tile-sub">让人反复重播的上头声音</div>
+              </div>
+              <div class="tile p3">
+                <div class="tile-title">叫醒专栏</div>
+                <div class="tile-sub">早安、撒娇、轻日常</div>
+              </div>
+              <div class="tile p4">
+                <div class="tile-title">情景剧场</div>
+                <div class="tile-sub">更有剧情感的角色内容</div>
+              </div>
+            </div>
+
+            <div class="row-head">
+              <div class="row-title">今日推荐</div>
+              <div class="row-link">更多</div>
+            </div>
+            <div class="poster-row">
+              <div class="poster">
+                <div class="poster-cover"></div>
+                <div class="poster-title">今晚我陪你睡</div>
+                <div class="poster-meta">女友音 · 18 分钟</div>
+              </div>
+              <div class="poster">
+                <div class="poster-cover"></div>
+                <div class="poster-title">别生气了，我来哄你</div>
+                <div class="poster-meta">和好 · 12 分钟</div>
+              </div>
+              <div class="poster">
+                <div class="poster-cover"></div>
+                <div class="poster-title">学妹今天只想黏着你</div>
+                <div class="poster-meta">学妹音 · VIP</div>
+              </div>
+            </div>
+
+            <div class="row-head">
+              <div class="row-title">连载专区</div>
+              <div class="row-link">更多</div>
+            </div>
+            <div class="series-card">
+              <div class="series-cover"></div>
+              <div>
+                <div class="series-title">今晚别挂电话</div>
+                <div class="series-meta">更新至第 8 集 · 情绪陪伴向</div>
+              </div>
+              <div class="arrow">›</div>
+            </div>
+            <div class="series-card">
+              <div class="series-cover"></div>
+              <div>
+                <div class="series-title">学妹来敲门</div>
+                <div class="series-meta">更新至第 5 集 · 轻剧情向</div>
+              </div>
+              <div class="arrow">›</div>
+            </div>
+          </div>
+          <div class="sticky">
+            <div class="tabs">
+              <div class="tab active">首页</div>
+              <div class="tab">分类</div>
+              <div class="tab tab-core"><div class="core-btn">AI</div>陪伴</div>
+              <div class="tab">我的</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen-block">
+        <div class="screen-title">内容详情页 V2｜更像内容播放详情页</div>
+        <div class="screen-desc">用内容海报、元信息、播放/试听、解锁按钮来承接，而不是用大量解释型文案。VIP 不作为首页硬卖，而在详情页和我的里自然承接。</div>
+        <div class="phone">
+          <div class="inner">
+            <div class="status"><span>9:41</span><span>5G 100%</span></div>
+            <div class="topbar">
+              <div class="brand" style="font-size:18px;">‹ 返回</div>
+              <div class="mini-avatar"></div>
+            </div>
+
+            <div class="detail-cover"></div>
+            <div class="hero-label">女友音 · 睡前陪伴 · 连载第 3 集</div>
+            <div class="hero-title" style="font-size:24px;">今晚我只陪你睡</div>
+            <div class="detail-text" style="margin-top:8px;">主播：小耳朵　·　18 分钟　·　更新中</div>
+            <div class="meta-row">
+              <div class="tag">女友音</div>
+              <div class="tag">睡前陪伴</div>
+              <div class="tag">温柔</div>
+            </div>
+            <div class="detail-text">失眠的时候，就戴上耳机吧。她会轻轻和你说话，陪你慢慢安静下来。</div>
+
+            <div class="action-stack">
+              <div class="stack-btn primary">试听前 30 秒</div>
+              <div class="stack-btn secondary">单集解锁 ¥9.9</div>
+              <div class="stack-btn secondary">加入片单</div>
+            </div>
+
+            <div class="row-head">
+              <div class="row-title">所属系列</div>
+              <div class="row-link">查看全部剧集</div>
+            </div>
+            <div class="series-card">
+              <div class="series-cover"></div>
+              <div>
+                <div class="series-title">今晚别挂电话</div>
+                <div class="series-meta">更新至第 8 集 · 当前播放第 3 集</div>
+              </div>
+              <div class="arrow">›</div>
+            </div>
+
+            <div class="row-head">
+              <div class="row-title">你可能还会听</div>
+              <div class="row-link">更多</div>
+            </div>
+            <div class="poster-row">
+              <div class="poster">
+                <div class="poster-cover"></div>
+                <div class="poster-title">抱着你睡着</div>
+                <div class="poster-meta">女友音</div>
+              </div>
+              <div class="poster">
+                <div class="poster-cover"></div>
+                <div class="poster-title">今天别难过</div>
+                <div class="poster-meta">安慰疗愈</div>
+              </div>
+              <div class="poster">
+                <div class="poster-cover"></div>
+                <div class="poster-title">小声说晚安</div>
+                <div class="poster-meta">耳虫</div>
+              </div>
+            </div>
+          </div>
+          <div class="sticky">
+            <div class="tabs">
+              <div class="tab active">首页</div>
+              <div class="tab">分类</div>
+              <div class="tab tab-core"><div class="core-btn">AI</div>陪伴</div>
+              <div class="tab">我的</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen-block">
+        <div class="screen-title">我的页 V2｜VIP 放入权益资产区</div>
+        <div class="screen-desc">VIP 从首页拿掉，放到“我的”里与已购内容、片单、AI 时长一起管理，更符合内容平台的权益页逻辑。</div>
+        <div class="phone">
+          <div class="inner">
+            <div class="status"><span>9:41</span><span>5G 100%</span></div>
+            <div class="topbar">
+              <div class="brand">我的</div>
+              <div class="mini-avatar"></div>
+            </div>
+
+            <div class="profile-card">
+              <div class="profile-avatar"></div>
+              <div>
+                <div class="title">今晚早点睡</div>
+                <div class="meta">已购内容 6 · 片单 12 · AI 时长 24 分钟</div>
+              </div>
+            </div>
+
+            <div class="row-head">
+              <div class="row-title">我的片单</div>
+              <div class="row-link">全部</div>
+            </div>
+            <div class="poster-row">
+              <div class="poster">
+                <div class="poster-cover"></div>
+                <div class="poster-title">今晚别挂电话</div>
+                <div class="poster-meta">连载中</div>
+              </div>
+              <div class="poster">
+                <div class="poster-cover"></div>
+                <div class="poster-title">学妹来敲门</div>
+                <div class="poster-meta">收藏</div>
+              </div>
+              <div class="poster">
+                <div class="poster-cover"></div>
+                <div class="poster-title">抱着你睡着</div>
+                <div class="poster-meta">已购</div>
+              </div>
+            </div>
+
+            <div class="row-head">
+              <div class="row-title">权益与资产</div>
+            </div>
+            <div class="menu-card">
+              <div class="menu-row"><span>VIP 会员</span><span style="color: var(--gold);">未开通 ›</span></div>
+            </div>
+            <div class="menu-card">
+              <div class="menu-row"><span>AI 陪伴时长</span><span style="color: var(--sub);">24 分钟 ›</span></div>
+            </div>
+            <div class="menu-card">
+              <div class="menu-row"><span>订单记录</span><span style="color: var(--sub);">›</span></div>
+            </div>
+            <div class="menu-card">
+              <div class="menu-row"><span>账号与设置</span><span style="color: var(--sub);">›</span></div>
+            </div>
+          </div>
+          <div class="sticky">
+            <div class="tabs">
+              <div class="tab">首页</div>
+              <div class="tab">分类</div>
+              <div class="tab tab-core"><div class="core-btn">AI</div>陪伴</div>
+              <div class="tab active">我的</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="note">
+      这一版已经把你的关键反馈落实进结构里：<br>
+      1. 去掉顶部重复搜索；<br>
+      2. Banner 改成可运营 3-5 页结构；<br>
+      3. “你现在想听什么”改成 2x2 专区入口，不再直接和用户对话；<br>
+      4. 首页更偏 Netflix 式内容浏览结构；<br>
+      5. AI 改到下导航中间核心位；<br>
+      6. VIP 从首页移到“我的”里承接。<br><br>
+      如果你认可这个方向，我下一步可以继续把这版扩成完整多页原型：首页、分类、连载详情、播放页、AI页，统一成这一套风格。
+    </div>
+  </div>
+</body>
+</html>

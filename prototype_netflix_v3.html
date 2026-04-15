@@ -1,0 +1,2056 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>耳边 - Netflix风格修订原型 V3</title>
+  <style>
+    :root {
+      --bg: #0b0c14;
+      --panel: #131625;
+      --panel-2: #1a1f33;
+      --line: #262b43;
+      --text: #f6f3fb;
+      --sub: #c3bed4;
+      --muted: #8a8499;
+      --pink: #ef7aa8;
+      --purple: #9c8cff;
+      --gold: #f2c07b;
+      --white: #ffffff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+      background: linear-gradient(180deg, #08090f 0%, #111423 100%);
+      color: var(--text);
+    }
+    .wrap {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 28px 24px 56px;
+    }
+    h1 { margin: 0 0 8px; font-size: 30px; }
+    .intro {
+      color: var(--sub);
+      line-height: 1.7;
+      margin-bottom: 24px;
+      max-width: 980px;
+    }
+    .screens {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      align-items: start;
+    }
+    .screen-block { display: flex; flex-direction: column; gap: 8px; }
+    .screen-title { font-size: 18px; font-weight: 700; }
+    .screen-desc { font-size: 13px; line-height: 1.6; color: var(--sub); min-height: 42px; }
+    .phone {
+      width: 390px;
+      max-width: 100%;
+      min-height: 844px;
+      background: var(--bg);
+      border: 1px solid #2d3248;
+      border-radius: 34px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 32px 72px rgba(0,0,0,.45);
+    }
+    .inner { padding: 16px 16px 104px; }
+    .status {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+    .topbar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      height: 32px;
+      margin-bottom: 16px;
+    }
+    .sub-topbar {
+      display: grid;
+      grid-template-columns: 32px 1fr 32px;
+      align-items: center;
+      height: 32px;
+      margin-bottom: 16px;
+    }
+    .brand {
+      font-size: 23px;
+      font-weight: 700;
+      line-height: 32px;
+      display: flex;
+      align-items: center;
+      height: 32px;
+    }
+    .back-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text);
+    }
+    .back-btn svg {
+      width: 18px;
+      height: 18px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.9;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .nav-title {
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 32px;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .mini-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #f4a3bf, #9a89ff);
+      border: 1px solid rgba(255,255,255,.14);
+      justify-self: end;
+    }
+    .hero {
+      height: 198px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(239,122,168,.35), rgba(156,140,255,.26));
+      border: 1px solid rgba(255,255,255,.06);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 14px auto auto 14px;
+      width: 96px;
+      height: 96px;
+      border-radius: 18px;
+      border: 1px dashed rgba(255,255,255,.22);
+      opacity: .8;
+    }
+    .hero-label {
+      font-size: 11px;
+      color: #ffe2ef;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      position: relative;
+      z-index: 1;
+    }
+    .hero-title { font-size: 20px; font-weight: 700; position: relative; z-index: 1; }
+    .hero-sub {
+      font-size: 13px;
+      color: var(--sub);
+      line-height: 1.5;
+      margin-top: 6px;
+      position: relative;
+      z-index: 1;
+    }
+    .hero-actions { display: flex; gap: 8px; margin-top: 12px; position: relative; z-index: 1; }
+    .btn {
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid transparent;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+    }
+    .btn.primary { background: #fff; color: #111; }
+    .btn.dark { background: rgba(255,255,255,.08); color: var(--text); border-color: rgba(255,255,255,.08); }
+    .btn.pink { background: var(--pink); color: white; }
+    .row-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      min-height: 24px;
+      margin: 16px 0 10px;
+    }
+    .row-title { font-size: 16px; font-weight: 700; line-height: 24px; }
+    .row-link { font-size: 12px; color: var(--sub); line-height: 24px; }
+    .grid2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .tile {
+      height: 108px;
+      border-radius: 16px;
+      padding: 12px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      position: relative;
+      overflow: hidden;
+    }
+    .tile-icon {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .tile-icon svg {
+      width: 20px;
+      height: 20px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .tile.p1 { background: linear-gradient(150deg, rgba(239,122,168,.22), rgba(239,122,168,.06)); }
+    .tile.p1 .tile-icon { color: var(--pink); }
+    .tile.p2 { background: linear-gradient(150deg, rgba(156,140,255,.20), rgba(156,140,255,.06)); }
+    .tile.p2 .tile-icon { color: var(--purple); }
+    .tile.p3 { background: linear-gradient(150deg, rgba(242,192,123,.20), rgba(242,192,123,.06)); }
+    .tile.p3 .tile-icon { color: var(--gold); }
+    .tile.p4 { background: linear-gradient(150deg, rgba(121,179,255,.18), rgba(121,179,255,.05)); }
+    .tile.p4 .tile-icon { color: #79b3ff; }
+    .tile-copy {
+      display: grid;
+      gap: 4px;
+      min-height: 46px;
+    }
+    .tile-title { font-size: 14px; font-weight: 700; line-height: 1.3; }
+    .tile-sub {
+      color: var(--sub);
+      font-size: 11px;
+      line-height: 1.4;
+      min-height: 30px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .poster-row {
+      display: flex;
+      gap: 10px;
+      overflow: hidden;
+    }
+    .poster {
+      width: 122px;
+      flex: 0 0 122px;
+    }
+    .poster-cover {
+      width: 122px;
+      height: 156px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(239,122,168,.45), rgba(156,140,255,.35));
+      border: 1px solid rgba(255,255,255,.08);
+      position: relative;
+      overflow: hidden;
+    }
+    .poster-cover::after {
+      content: "";
+      position: absolute;
+      inset: 16px;
+      border-radius: 12px;
+      border: 1px dashed rgba(255,255,255,.2);
+    }
+    .poster-title { font-size: 13px; font-weight: 700; margin-top: 8px; line-height: 1.4; }
+    .poster-meta { color: var(--sub); font-size: 11px; margin-top: 4px; line-height: 1.5; }
+    .series-card {
+      display: grid;
+      grid-template-columns: 72px 1fr 20px;
+      gap: 10px;
+      align-items: center;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    .series-cover {
+      width: 72px;
+      height: 72px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(239,122,168,.45), rgba(156,140,255,.3));
+      border: 1px solid rgba(255,255,255,.08);
+    }
+    .series-title { font-size: 14px; font-weight: 700; }
+    .series-meta { font-size: 12px; color: var(--sub); margin-top: 4px; line-height: 1.5; }
+    .arrow {
+      color: var(--sub);
+      font-size: 16px;
+      text-align: center;
+      width: 20px;
+    }
+    .detail-cover {
+      height: 230px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(239,122,168,.35), rgba(156,140,255,.24));
+      border: 1px solid rgba(255,255,255,.06);
+      margin-bottom: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+    .detail-cover::after {
+      content: "";
+      position: absolute;
+      inset: 24px;
+      border-radius: 14px;
+      border: 1px dashed rgba(255,255,255,.18);
+    }
+    .meta-row { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+    .tag {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: var(--panel-2);
+      color: var(--text);
+    }
+    .detail-text { color: var(--sub); font-size: 13px; line-height: 1.7; }
+    .action-stack { display: grid; gap: 8px; margin: 14px 0; }
+    .stack-btn {
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-weight: 700;
+      font-size: 14px;
+      text-align: center;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .stack-btn.primary { background: #fff; color: #111; }
+    .stack-btn.secondary { background: var(--panel); border: 1px solid var(--line); color: var(--text); }
+    .sticky {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      background: rgba(10,11,17,.96);
+      border-top: 1px solid var(--line);
+      padding: 10px 12px 18px;
+    }
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      align-items: stretch;
+      gap: 2px;
+    }
+    .tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 58px;
+      padding: 4px 0;
+      text-align: center;
+      color: var(--muted);
+      font-size: 11px;
+      gap: 6px;
+    }
+    .tab.active { color: var(--text); }
+    .tab-icon {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: inherit;
+    }
+    .tab-icon svg {
+      width: 22px;
+      height: 22px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.9;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .tab-label {
+      line-height: 1.15;
+      white-space: nowrap;
+    }
+    .profile-card {
+      background: linear-gradient(135deg, rgba(239,122,168,.15), rgba(156,140,255,.12));
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 18px;
+      padding: 14px;
+      display: grid;
+      grid-template-columns: 52px 1fr;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .profile-avatar {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #f4a3bf, #9a89ff);
+    }
+    .menu-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 10px;
+    }
+    .menu-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      min-height: 20px;
+    }
+    .chip-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .filter-chip {
+      min-height: 34px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      color: var(--sub);
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+    .filter-chip.active {
+      color: var(--text);
+      border-color: rgba(239,122,168,.42);
+      background: rgba(239,122,168,.14);
+    }
+    .list-card {
+      display: grid;
+      grid-template-columns: 86px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    .list-cover {
+      width: 86px;
+      height: 108px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(239,122,168,.42), rgba(156,140,255,.30));
+      border: 1px solid rgba(255,255,255,.08);
+    }
+    .list-title {
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+    .list-sub {
+      color: var(--sub);
+      font-size: 12px;
+      margin-top: 4px;
+      line-height: 1.6;
+    }
+    .list-side {
+      display: grid;
+      gap: 8px;
+      justify-items: end;
+    }
+    .price-pill {
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+    .price-pill.vip {
+      color: #201403;
+      background: linear-gradient(135deg, #f6d39a, #f2c07b);
+    }
+    .balance-card {
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 14px;
+      background: linear-gradient(135deg, rgba(239,122,168,.18), rgba(156,140,255,.14));
+      border: 1px solid rgba(255,255,255,.08);
+    }
+    .balance-label {
+      color: var(--sub);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+    .balance-value {
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+    .balance-sub {
+      color: var(--sub);
+      font-size: 12px;
+      margin-top: 6px;
+      line-height: 1.6;
+    }
+    .role-card {
+      display: grid;
+      grid-template-columns: 60px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+    .role-avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #f4a3bf, #9a89ff);
+      border: 1px solid rgba(255,255,255,.1);
+    }
+    .role-name {
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .role-sub {
+      color: var(--sub);
+      font-size: 12px;
+      margin-top: 4px;
+      line-height: 1.6;
+    }
+    .mini-btn {
+      min-width: 68px;
+      min-height: 34px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,.08);
+      border: 1px solid var(--line);
+      color: var(--text);
+      white-space: nowrap;
+    }
+    .mini-btn.primary {
+      background: #fff;
+      color: #111;
+      border-color: transparent;
+    }
+    .memory-card,
+    .dialog-card,
+    .pack-card,
+    .player-panel,
+    .episode-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px;
+      margin-bottom: 10px;
+    }
+    .memory-card {
+      color: var(--sub);
+      line-height: 1.7;
+      font-size: 13px;
+    }
+    .voice-stage {
+      border-radius: 24px;
+      padding: 22px 18px;
+      margin: 8px 0 14px;
+      background: linear-gradient(180deg, rgba(239,122,168,.16), rgba(156,140,255,.10));
+      border: 1px solid rgba(255,255,255,.08);
+      text-align: center;
+    }
+    .voice-orb {
+      width: 140px;
+      height: 140px;
+      margin: 0 auto 14px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, rgba(255,255,255,.36), rgba(255,255,255,.06) 34%, rgba(239,122,168,.52) 60%, rgba(156,140,255,.68) 100%);
+      box-shadow: 0 18px 40px rgba(156,140,255,.24);
+    }
+    .voice-status {
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .voice-sub {
+      color: var(--sub);
+      font-size: 12px;
+      margin-top: 6px;
+      line-height: 1.6;
+    }
+    .wave-row {
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      gap: 5px;
+      align-items: end;
+      height: 34px;
+      margin-top: 16px;
+    }
+    .wave-row span {
+      display: block;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(239,122,168,.9), rgba(156,140,255,.9));
+    }
+    .progress-track {
+      width: 100%;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      overflow: hidden;
+      margin: 12px 0 8px;
+    }
+    .progress-fill {
+      width: 42%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+    }
+    .time-row {
+      display: flex;
+      justify-content: space-between;
+      color: var(--sub);
+      font-size: 12px;
+    }
+    .player-actions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .episode-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+    .episode-title {
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .episode-meta {
+      color: var(--sub);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    .pack-card.active {
+      border-color: rgba(239,122,168,.42);
+      background: linear-gradient(135deg, rgba(239,122,168,.14), rgba(156,140,255,.10));
+    }
+    .pack-title {
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .pack-price {
+      font-size: 28px;
+      font-weight: 800;
+      margin-top: 8px;
+      line-height: 1.2;
+    }
+    .pack-meta {
+      color: var(--sub);
+      font-size: 12px;
+      margin-top: 6px;
+      line-height: 1.6;
+    }
+    .note {
+      margin-top: 24px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--line);
+      color: var(--sub);
+      line-height: 1.7;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>耳边修订版 UI 原型（Netflix 风格 V3）</h1>
+    <div class="intro">
+      这一版重点修正了你指出的“对齐感”和“导航小 icon 统一性”问题：顶部左 Logo / 右头像做了统一基线，底部导航改成同一套真实 icon，AI 陪伴也回到和其他 tab 一样大的统一体系里。
+    </div>
+
+    <div class="screens">
+      <div class="screen-block">
+        <div class="screen-title">首页 V3｜结构正确 + 对齐统一</div>
+        <div class="screen-desc">顶部、专区卡片、推荐内容流、底部导航都统一对齐；底部补了 icon，整体更接近真实用户级 App。</div>
+        <div class="phone">
+          <div class="inner">
+            <div class="status"><span>9:41</span><span>5G 100%</span></div>
+            <div class="topbar">
+              <div class="brand">耳边</div>
+              <div class="mini-avatar"></div>
+            </div>
+
+            <div class="hero">
+              <div class="hero-label">运营 Banner 1 / 5</div>
+              <div class="hero-title">今晚别挂电话</div>
+              <div class="hero-sub">连载更新中。每天深夜，她都会准时打给你。</div>
+              <div class="hero-actions">
+                <div class="btn primary">立即播放</div>
+                <div class="btn dark">加入片单</div>
+              </div>
+            </div>
+
+            <div class="row-head">
+              <div class="row-title">ASMR 专区</div>
+              <div class="row-link">更多</div>
+            </div>
+            <div class="grid2">
+              <div class="tile p1">
+                <div class="tile-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M6.5 14.5c0-3 2.4-5.5 5.5-5.5 2.8 0 5.1 2 5.5 4.7"></path><path d="M6 17.5c1.4-1.2 3.4-2 6-2 2.1 0 4 .5 5.5 1.5"></path><path d="M10 8.5c.6-1.2 1.4-2.2 2-3"></path></svg>
+                </div>
+                <div class="tile-copy">
+                  <div class="tile-title">睡前陪伴</div>
+                  <div class="tile-sub">适合深夜戴上耳机慢慢听</div>
+                </div>
+              </div>
+              <div class="tile p2">
+                <div class="tile-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M7.5 9.5c1.6-1.7 4.4-1.7 6 0l1 1"></path><path d="M9 14.5c1-1 2.9-1 3.9 0"></path><path d="M5 12.5c2.2-2.8 6.6-3.1 9.3-.6l1.7 1.6"></path></svg>
+                </div>
+                <div class="tile-copy">
+                  <div class="tile-title">耳虫</div>
+                  <div class="tile-sub">让人反复重播的上头声音</div>
+                </div>
+              </div>
+              <div class="tile p3">
+                <div class="tile-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M12 4v3"></path><path d="M12 17v3"></path><path d="M5 12h3"></path><path d="M16 12h3"></path><path d="M7.2 7.2l2.1 2.1"></path><path d="M14.7 14.7l2.1 2.1"></path><path d="M16.8 7.2l-2.1 2.1"></path><path d="M9.3 14.7l-2.1 2.1"></path><circle cx="12" cy="12" r="3.2"></circle></svg>
+                </div>
+                <div class="tile-copy">
+                  <div class="tile-title">叫醒专栏</div>
+                  <div class="tile-sub">早安、撒娇、轻日常</div>
+                </div>
+              </div>
+              <div class="tile p4">
+                <div class="tile-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><rect x="5" y="6" width="14" height="12" rx="2.5"></rect><path d="M8.5 10.5c1.1-1.2 2.2-1.8 3.5-1.8 1.6 0 2.9.8 4 2.4"></path><path d="M8 14.5c1-.8 2.3-1.2 4-1.2 1.4 0 2.7.4 3.9 1.2"></path></svg>
+                </div>
+                <div class="tile-copy">
+                  <div class="tile-title">情景剧场</div>
+                  <div class="tile-sub">更有剧情感的角色内容</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row-head">
+              <div class="row-title">今日推荐</div>
+              <div class="row-link">更多</div>
+            </div>
+            <div class="poster-row">
+              <div class="poster">
+                <div class="poster-cover"></div>
+                <div class="poster-title">今晚我陪你睡</div>
+                <div class="poster-meta">女友音 · 18 分钟</div>
+              </div>
+              <div class="poster">
+                <div class="poster-cover"></div>
+                <div class="poster-title">别生气了，我来哄你</div>
+                <div class="poster-meta">和好 · 12 分钟</div>
+              </div>
+              <div class="poster">
+                <div class="poster-cover"></div>
+                <div class="poster-title">学妹今天只想黏着你</div>
+                <div class="poster-meta">学妹音 · VIP</div>
+              </div>
+            </div>
+
+            <div class="row-head">
+              <div class="row-title">连载专区</div>
+              <div class="row-link">更多</div>
+            </div>
+            <div class="series-card">
+              <div class="series-cover"></div>
+              <div>
+                <div class="series-title">今晚别挂电话</div>
+                <div class="series-meta">更新至第 8 集 · 情绪陪伴向</div>
+              </div>
+              <div class="arrow">›</div>
+            </div>
+            <div class="series-card">
+              <div class="series-cover"></div>
+              <div>
+                <div class="series-title">学妹来敲门</div>
+                <div class="series-meta">更新至第 5 集 · 轻剧情向</div>
+              </div>
+              <div class="arrow">›</div>
+            </div>
+          </div>
+          <div class="sticky">
+            <div class="tabs">
+              <div class="tab active">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 9.5V20h14V9.5"></path></svg>
+                </div>
+                <div class="tab-label">首页</div>
+              </div>
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>
+                </div>
+                <div class="tab-label">分类</div>
+              </div>
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M12 3 13.9 8.1 19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"></path><path d="M19 15l.95 2.05L22 18l-2.05.95L19 21l-.95-2.05L16 18l2.05-.95L19 15Z"></path><path d="M5 15l.65 1.35L7 17l-1.35.65L5 19l-.65-1.35L3 17l1.35-.65L5 15Z"></path></svg>
+                </div>
+                <div class="tab-label">AI陪伴</div>
+              </div>
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M18 19a6 6 0 0 0-12 0"></path><circle cx="12" cy="10" r="4"></circle><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z"></path></svg>
+                </div>
+                <div class="tab-label">我的</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen-block">
+        <div class="screen-title">分类页 V3｜标签筛选 + 内容列表</div>
+        <div class="screen-desc">分类页按角色、场景、排序三层组织，帮助用户快速找到偏好的声音内容，也承接首页“更多”和专区入口。</div>
+        <div class="phone">
+          <div class="inner">
+            <div class="status"><span>9:41</span><span>5G 100%</span></div>
+            <div class="topbar">
+              <div class="brand">分类</div>
+              <div class="mini-avatar"></div>
+            </div>
+
+            <div class="row-head">
+              <div class="row-title">角色标签</div>
+              <div class="row-link">更多</div>
+            </div>
+            <div class="chip-row">
+              <div class="filter-chip active">女友音</div>
+              <div class="filter-chip">男友音</div>
+              <div class="filter-chip">男娘音</div>
+              <div class="filter-chip">霸总音</div>
+              <div class="filter-chip">学妹音</div>
+            </div>
+
+            <div class="row-head">
+              <div class="row-title">场景标签</div>
+              <div class="row-link">更多</div>
+            </div>
+            <div class="chip-row">
+              <div class="filter-chip active">睡前陪伴</div>
+              <div class="filter-chip">早安叫醒</div>
+              <div class="filter-chip">吵架和好</div>
+              <div class="filter-chip">角色扮演</div>
+              <div class="filter-chip">情景剧</div>
+            </div>
+
+            <div class="row-head">
+              <div class="row-title">排序筛选</div>
+              <div class="row-link">更多</div>
+            </div>
+            <div class="chip-row">
+              <div class="filter-chip active">最热</div>
+              <div class="filter-chip">最新</div>
+              <div class="filter-chip">连载中</div>
+              <div class="filter-chip">会员可听</div>
+            </div>
+
+            <div class="row-head">
+              <div class="row-title">匹配内容</div>
+              <div class="row-link">更多</div>
+            </div>
+            <div class="list-card">
+              <div class="list-cover"></div>
+              <div>
+                <div class="list-title">今晚我只陪你睡</div>
+                <div class="list-sub">小耳朵 · 18 分钟 · 连载中 · 女友音 / 睡前陪伴</div>
+              </div>
+              <div class="list-side">
+                <div class="price-pill">试听中</div>
+                <div class="arrow">›</div>
+              </div>
+            </div>
+            <div class="list-card">
+              <div class="list-cover"></div>
+              <div>
+                <div class="list-title">别生气了，我来哄你</div>
+                <div class="list-sub">眠夏 · 12 分钟 · 单集解锁 · 和好 / 温柔</div>
+              </div>
+              <div class="list-side">
+                <div class="price-pill">¥9.9</div>
+                <div class="arrow">›</div>
+              </div>
+            </div>
+            <div class="list-card">
+              <div class="list-cover"></div>
+              <div>
+                <div class="list-title">学妹今天只想黏着你</div>
+                <div class="list-sub">森屿 · 16 分钟 · 会员可听 · 学妹音 / 轻剧情</div>
+              </div>
+              <div class="list-side">
+                <div class="price-pill vip">VIP</div>
+                <div class="arrow">›</div>
+              </div>
+            </div>
+          </div>
+          <div class="sticky">
+            <div class="tabs">
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 9.5V20h14V9.5"></path></svg>
+                </div>
+                <div class="tab-label">首页</div>
+              </div>
+              <div class="tab active">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>
+                </div>
+                <div class="tab-label">分类</div>
+              </div>
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M12 3 13.9 8.1 19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"></path><path d="M19 15l.95 2.05L22 18l-2.05.95L19 21l-.95-2.05L16 18l2.05-.95L19 15Z"></path><path d="M5 15l.65 1.35L7 17l-1.35.65L5 19l-.65-1.35L3 17l1.35-.65L5 15Z"></path></svg>
+                </div>
+                <div class="tab-label">AI陪伴</div>
+              </div>
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M18 19a6 6 0 0 0-12 0"></path><circle cx="12" cy="10" r="4"></circle><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z"></path></svg>
+                </div>
+                <div class="tab-label">我的</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen-block">
+        <div class="screen-title">连载详情页 V3｜追更承接页</div>
+        <div class="screen-desc">承接内容详情里的“所属系列”，突出更新状态、集数列表和继续收听入口，形成追更闭环。</div>
+        <div class="phone">
+          <div class="inner">
+            <div class="status"><span>9:41</span><span>5G 100%</span></div>
+            <div class="sub-topbar">
+              <div class="back-btn" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M15 6 9 12l6 6"></path></svg>
+              </div>
+              <div class="nav-title">连载详情</div>
+              <div class="mini-avatar"></div>
+            </div>
+
+            <div class="detail-cover"></div>
+            <div class="hero-title" style="font-size:24px;">今晚别挂电话</div>
+            <div class="detail-text" style="margin-top:8px;">更新至第 8 集 · 情绪陪伴向 · 2.4 万人追更</div>
+            <div class="meta-row">
+              <div class="tag">女友音</div>
+              <div class="tag">睡前陪伴</div>
+              <div class="tag">连载中</div>
+            </div>
+            <div class="detail-text">每晚准时来电的关系型连载内容，适合睡前、通勤和情绪低落时反复收听。</div>
+
+            <div class="action-stack">
+              <div class="stack-btn primary">继续播放第 3 集</div>
+              <div class="stack-btn secondary">加入追更</div>
+            </div>
+
+            <div class="row-head">
+              <div class="row-title">剧集列表</div>
+              <div class="row-link">更多</div>
+            </div>
+            <div class="episode-card">
+              <div class="episode-head"><div class="episode-title">第 1 集 · 今晚先别说晚安</div><div class="price-pill">已解锁</div></div>
+              <div class="episode-meta">18 分钟 · 已收听 100% · 睡前陪伴</div>
+            </div>
+            <div class="episode-card">
+              <div class="episode-head"><div class="episode-title">第 2 集 · 你是不是又偷偷难过了</div><div class="price-pill">已解锁</div></div>
+              <div class="episode-meta">16 分钟 · 已收听 72% · 情绪安慰</div>
+            </div>
+            <div class="episode-card">
+              <div class="episode-head"><div class="episode-title">第 3 集 · 今晚我只陪你睡</div><div class="price-pill">播放中</div></div>
+              <div class="episode-meta">18 分钟 · 当前播放 · 温柔女友</div>
+            </div>
+            <div class="episode-card">
+              <div class="episode-head"><div class="episode-title">第 4 集 · 醒来后第一句要先告诉我</div><div class="price-pill vip">VIP</div></div>
+              <div class="episode-meta">17 分钟 · 即将更新 · 会员可听</div>
+            </div>
+          </div>
+          <div class="sticky">
+            <div class="tabs">
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 9.5V20h14V9.5"></path></svg>
+                </div>
+                <div class="tab-label">首页</div>
+              </div>
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>
+                </div>
+                <div class="tab-label">分类</div>
+              </div>
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M12 3 13.9 8.1 19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"></path><path d="M19 15l.95 2.05L22 18l-2.05.95L19 21l-.95-2.05L16 18l2.05-.95L19 15Z"></path><path d="M5 15l.65 1.35L7 17l-1.35.65L5 19l-.65-1.35L3 17l1.35-.65L5 15Z"></path></svg>
+                </div>
+                <div class="tab-label">AI陪伴</div>
+              </div>
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M18 19a6 6 0 0 0-12 0"></path><circle cx="12" cy="10" r="4"></circle><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z"></path></svg>
+                </div>
+                <div class="tab-label">我的</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen-block">
+        <div class="screen-title">播放页 V3｜内容播放闭环</div>
+        <div class="screen-desc">承接“立即播放 / 继续播放 / 试听前 30 秒”，把详情页真正落到可播放状态。</div>
+        <div class="phone">
+          <div class="inner">
+            <div class="status"><span>9:41</span><span>5G 100%</span></div>
+            <div class="sub-topbar">
+              <div class="back-btn" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M15 6 9 12l6 6"></path></svg>
+              </div>
+              <div class="nav-title">正在播放</div>
+              <div class="mini-avatar"></div>
+            </div>
+
+            <div class="detail-cover"></div>
+            <div class="hero-title" style="font-size:24px;">今晚我只陪你睡</div>
+            <div class="detail-text" style="margin-top:8px;">小耳朵 · 第 3 集 · 女友音 / 睡前陪伴</div>
+
+            <div class="player-panel">
+              <div class="progress-track"><div class="progress-fill"></div></div>
+              <div class="time-row"><span>07:36</span><span>18:00</span></div>
+              <div class="player-actions">
+                <div class="mini-btn">上一集</div>
+                <div class="mini-btn primary">暂停</div>
+                <div class="mini-btn">下一集</div>
+              </div>
+            </div>
+
+            <div class="row-head">
+              <div class="row-title">播放信息</div>
+              <div class="row-link">更多</div>
+            </div>
+            <div class="dialog-card">
+              <div class="episode-title">继续收听进度已保存</div>
+              <div class="episode-meta">退出后会在首页和“我的”里展示最近收听，回访时可直接继续播放。</div>
+            </div>
+            <div class="action-stack">
+              <div class="stack-btn secondary">返回内容详情</div>
+              <div class="stack-btn secondary">加入片单</div>
+            </div>
+          </div>
+          <div class="sticky">
+            <div class="tabs">
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 9.5V20h14V9.5"></path></svg>
+                </div>
+                <div class="tab-label">首页</div>
+              </div>
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>
+                </div>
+                <div class="tab-label">分类</div>
+              </div>
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M12 3 13.9 8.1 19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"></path><path d="M19 15l.95 2.05L22 18l-2.05.95L19 21l-.95-2.05L16 18l2.05-.95L19 15Z"></path><path d="M5 15l.65 1.35L7 17l-1.35.65L5 19l-.65-1.35L3 17l1.35-.65L5 15Z"></path></svg>
+                </div>
+                <div class="tab-label">AI陪伴</div>
+              </div>
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M18 19a6 6 0 0 0-12 0"></path><circle cx="12" cy="10" r="4"></circle><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z"></path></svg>
+                </div>
+                <div class="tab-label">我的</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen-block">
+        <div class="screen-title">内容详情页 V3｜试听与解锁承接</div>
+        <div class="screen-desc">承接首页内容流与分类列表，优先完成试听、解锁、加入片单和进入连载详情的闭环。</div>
+        <div class="phone">
+          <div class="inner">
+            <div class="status"><span>9:41</span><span>5G 100%</span></div>
+            <div class="sub-topbar">
+              <div class="back-btn" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M15 6 9 12l6 6"></path></svg>
+              </div>
+              <div class="nav-title">内容详情</div>
+              <div class="mini-avatar"></div>
+            </div>
+
+            <div class="detail-cover"></div>
+            <div class="hero-label">女友音 · 睡前陪伴 · 连载第 3 集</div>
+            <div class="hero-title" style="font-size:24px;">今晚我只陪你睡</div>
+            <div class="detail-text" style="margin-top:8px;">主播：小耳朵　·　18 分钟　·　更新中</div>
+            <div class="meta-row">
+              <div class="tag">女友音</div>
+              <div class="tag">睡前陪伴</div>
+              <div class="tag">温柔</div>
+            </div>
+            <div class="detail-text">失眠的时候，就戴上耳机吧。她会轻轻和你说话，陪你慢慢安静下来。</div>
+
+            <div class="action-stack">
+              <div class="stack-btn primary">试听前 30 秒</div>
+              <div class="stack-btn secondary">单集解锁 ¥9.9</div>
+              <div class="stack-btn secondary">加入片单</div>
+            </div>
+
+            <div class="row-head">
+              <div class="row-title">所属系列</div>
+              <div class="row-link">更多</div>
+            </div>
+            <div class="series-card">
+              <div class="series-cover"></div>
+              <div>
+                <div class="series-title">今晚别挂电话</div>
+                <div class="series-meta">更新至第 8 集 · 当前播放第 3 集</div>
+              </div>
+              <div class="arrow">›</div>
+            </div>
+          </div>
+          <div class="sticky">
+            <div class="tabs">
+              <div class="tab active">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 9.5V20h14V9.5"></path></svg>
+                </div>
+                <div class="tab-label">首页</div>
+              </div>
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>
+                </div>
+                <div class="tab-label">分类</div>
+              </div>
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M12 3 13.9 8.1 19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"></path><path d="M19 15l.95 2.05L22 18l-2.05.95L19 21l-.95-2.05L16 18l2.05-.95L19 15Z"></path><path d="M5 15l.65 1.35L7 17l-1.35.65L5 19l-.65-1.35L3 17l1.35-.65L5 15Z"></path></svg>
+                </div>
+                <div class="tab-label">AI陪伴</div>
+              </div>
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M18 19a6 6 0 0 0-12 0"></path><circle cx="12" cy="10" r="4"></circle><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z"></path></svg>
+                </div>
+                <div class="tab-label">我的</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen-block">
+        <div class="screen-title">AI角色页 V3｜角色选择主承接</div>
+        <div class="screen-desc">点击底部导航 AI陪伴 后，先进入角色选择页，展示剩余时长、角色卡、偏好入口和最近记忆，避免直接跳进空白通话页。</div>
+        <div class="phone">
+          <div class="inner">
+            <div class="status"><span>9:41</span><span>5G 100%</span></div>
+            <div class="topbar">
+              <div class="brand">AI陪伴</div>
+              <div class="mini-avatar"></div>
+            </div>
+
+            <div class="balance-card">
+              <div class="balance-label">当前可用时长</div>
+              <div class="balance-value">24 分钟</div>
+              <div class="balance-sub">适合再聊一段睡前陪伴；余额不足时可直接购买时长包。</div>
+            </div>
+
+            <div class="row-head">
+              <div class="row-title">推荐角色</div>
+              <div class="row-link">更多</div>
+            </div>
+            <div class="role-card">
+              <div class="role-avatar"></div>
+              <div>
+                <div class="role-name">晚安岚岚</div>
+                <div class="role-sub">温柔陪伴型 · 适合睡前、安慰和慢节奏倾听</div>
+              </div>
+              <div class="mini-btn primary">开始</div>
+            </div>
+            <div class="role-card">
+              <div class="role-avatar"></div>
+              <div>
+                <div class="role-name">江策</div>
+                <div class="role-sub">克制守护型 · 适合深夜整理情绪、短句回应</div>
+              </div>
+              <div class="mini-btn">开始</div>
+            </div>
+            <div class="role-card">
+              <div class="role-avatar"></div>
+              <div>
+                <div class="role-name">小棠</div>
+                <div class="role-sub">活泼黏人型 · 适合通勤、碎碎念和轻松聊天</div>
+              </div>
+              <div class="mini-btn">开始</div>
+            </div>
+
+            <div class="row-head">
+              <div class="row-title">基础偏好</div>
+              <div class="row-link">更多</div>
+            </div>
+            <div class="chip-row">
+              <div class="filter-chip active">叫我：阿川</div>
+              <div class="filter-chip">语气：温柔</div>
+              <div class="filter-chip">节奏：慢一点</div>
+            </div>
+
+            <div class="memory-card">
+              上次聊天记忆：你说最近总在加班，睡前很难安静下来。下次开场时，角色会先接住这个情绪，而不是重新问一遍。
+            </div>
+
+            <div class="action-stack">
+              <div class="stack-btn primary">继续和晚安岚岚聊天</div>
+              <div class="stack-btn secondary">设置称呼与语气</div>
+              <div class="stack-btn secondary">购买 AI 时长包</div>
+            </div>
+          </div>
+          <div class="sticky">
+            <div class="tabs">
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 9.5V20h14V9.5"></path></svg>
+                </div>
+                <div class="tab-label">首页</div>
+              </div>
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>
+                </div>
+                <div class="tab-label">分类</div>
+              </div>
+              <div class="tab active">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M12 3 13.9 8.1 19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"></path><path d="M19 15l.95 2.05L22 18l-2.05.95L19 21l-.95-2.05L16 18l2.05-.95L19 15Z"></path><path d="M5 15l.65 1.35L7 17l-1.35.65L5 19l-.65-1.35L3 17l1.35-.65L5 15Z"></path></svg>
+                </div>
+                <div class="tab-label">AI陪伴</div>
+              </div>
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M18 19a6 6 0 0 0-12 0"></path><circle cx="12" cy="10" r="4"></circle><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z"></path></svg>
+                </div>
+                <div class="tab-label">我的</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen-block">
+        <div class="screen-title">AI对话页 V3｜实时陪伴状态</div>
+        <div class="screen-desc">从角色页进入后，展示当前角色、语音状态、剩余时长和结束/续费操作，形成 AI 主闭环。</div>
+        <div class="phone">
+          <div class="inner">
+            <div class="status"><span>9:41</span><span>5G 100%</span></div>
+            <div class="sub-topbar">
+              <div class="back-btn" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M15 6 9 12l6 6"></path></svg>
+              </div>
+              <div class="nav-title">AI 对话</div>
+              <div class="mini-avatar"></div>
+            </div>
+
+            <div class="dialog-card">
+              <div class="episode-title">当前角色：晚安岚岚</div>
+              <div class="episode-meta">她记得你最近在赶项目，开场会优先安抚情绪，再慢慢陪你聊。</div>
+            </div>
+
+            <div class="voice-stage">
+              <div class="voice-orb"></div>
+              <div class="voice-status">正在听你说话</div>
+              <div class="voice-sub">你可以自然停顿；本轮回复会控制在温柔、慢节奏的陪伴感里。</div>
+              <div class="wave-row">
+                <span style="height: 10px;"></span>
+                <span style="height: 18px;"></span>
+                <span style="height: 28px;"></span>
+                <span style="height: 16px;"></span>
+                <span style="height: 32px;"></span>
+                <span style="height: 20px;"></span>
+                <span style="height: 26px;"></span>
+                <span style="height: 14px;"></span>
+                <span style="height: 22px;"></span>
+              </div>
+            </div>
+
+            <div class="balance-card">
+              <div class="balance-label">本次会话剩余时长</div>
+              <div class="balance-value">18:42</div>
+              <div class="balance-sub">余额不足时，会先引导购买再继续，不会突然中断且没有说明。</div>
+            </div>
+
+            <div class="action-stack">
+              <div class="stack-btn primary">按住继续说话</div>
+              <div class="stack-btn secondary">结束会话</div>
+              <div class="stack-btn secondary">购买更多时长</div>
+            </div>
+          </div>
+          <div class="sticky">
+            <div class="tabs">
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 9.5V20h14V9.5"></path></svg>
+                </div>
+                <div class="tab-label">首页</div>
+              </div>
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>
+                </div>
+                <div class="tab-label">分类</div>
+              </div>
+              <div class="tab active">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M12 3 13.9 8.1 19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"></path><path d="M19 15l.95 2.05L22 18l-2.05.95L19 21l-.95-2.05L16 18l2.05-.95L19 15Z"></path><path d="M5 15l.65 1.35L7 17l-1.35.65L5 19l-.65-1.35L3 17l1.35-.65L5 15Z"></path></svg>
+                </div>
+                <div class="tab-label">AI陪伴</div>
+              </div>
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M18 19a6 6 0 0 0-12 0"></path><circle cx="12" cy="10" r="4"></circle><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z"></path></svg>
+                </div>
+                <div class="tab-label">我的</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen-block">
+        <div class="screen-title">AI时长包页 V3｜余额不足承接</div>
+        <div class="screen-desc">承接 AI 角色页和对话页里的购买入口，把计费规则、时长档位和下单动作讲清楚。</div>
+        <div class="phone">
+          <div class="inner">
+            <div class="status"><span>9:41</span><span>5G 100%</span></div>
+            <div class="sub-topbar">
+              <div class="back-btn" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M15 6 9 12l6 6"></path></svg>
+              </div>
+              <div class="nav-title">AI 时长包</div>
+              <div class="mini-avatar"></div>
+            </div>
+
+            <div class="balance-card">
+              <div class="balance-label">当前余额</div>
+              <div class="balance-value">24 分钟</div>
+              <div class="balance-sub">进入对话前先展示余额；购买成功后时长立即到账，可继续当前会话。</div>
+            </div>
+
+            <div class="pack-card">
+              <div class="pack-title">轻量陪伴包</div>
+              <div class="pack-price">¥9.9</div>
+              <div class="pack-meta">30 分钟 · 适合短聊、睡前安慰、通勤碎碎念</div>
+            </div>
+            <div class="pack-card active">
+              <div class="pack-title">高频回访包</div>
+              <div class="pack-price">¥29.9</div>
+              <div class="pack-meta">120 分钟 · PRD 推荐档位，适合连续多天使用</div>
+            </div>
+            <div class="pack-card">
+              <div class="pack-title">会员优惠价</div>
+              <div class="pack-price">¥24.9</div>
+              <div class="pack-meta">120 分钟 · 会员专享，减少高频用户的续费阻力</div>
+            </div>
+
+            <div class="dialog-card">
+              <div class="episode-title">计费规则</div>
+              <div class="episode-meta">按实际对话时长扣减；余额不足会先提醒再引导购买；购买成功后可立即回到当前陪伴场景继续使用。</div>
+            </div>
+
+            <div class="action-stack">
+              <div class="stack-btn primary">立即购买 120 分钟</div>
+              <div class="stack-btn secondary">返回 AI 角色页</div>
+            </div>
+          </div>
+          <div class="sticky">
+            <div class="tabs">
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 9.5V20h14V9.5"></path></svg>
+                </div>
+                <div class="tab-label">首页</div>
+              </div>
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>
+                </div>
+                <div class="tab-label">分类</div>
+              </div>
+              <div class="tab active">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M12 3 13.9 8.1 19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"></path><path d="M19 15l.95 2.05L22 18l-2.05.95L19 21l-.95-2.05L16 18l2.05-.95L19 15Z"></path><path d="M5 15l.65 1.35L7 17l-1.35.65L5 19l-.65-1.35L3 17l1.35-.65L5 15Z"></path></svg>
+                </div>
+                <div class="tab-label">AI陪伴</div>
+              </div>
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M18 19a6 6 0 0 0-12 0"></path><circle cx="12" cy="10" r="4"></circle><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z"></path></svg>
+                </div>
+                <div class="tab-label">我的</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="screen-block">
+        <div class="screen-title">我的页 V3｜权益区对齐优化</div>
+        <div class="screen-desc">我的页保留 VIP 承接逻辑，同时统一信息卡、菜单卡和底部导航对齐方式。</div>
+        <div class="phone">
+          <div class="inner">
+            <div class="status"><span>9:41</span><span>5G 100%</span></div>
+            <div class="topbar">
+              <div class="brand">我的</div>
+              <div class="mini-avatar"></div>
+            </div>
+
+            <div class="profile-card">
+              <div class="profile-avatar"></div>
+              <div>
+                <div class="hero-title" style="font-size:18px;">今晚早点睡</div>
+                <div class="series-meta">已购内容 6 · 片单 12 · AI 时长 24 分钟</div>
+              </div>
+            </div>
+
+            <div class="row-head">
+              <div class="row-title">我的片单</div>
+              <div class="row-link">全部</div>
+            </div>
+            <div class="poster-row">
+              <div class="poster">
+                <div class="poster-cover"></div>
+                <div class="poster-title">今晚别挂电话</div>
+                <div class="poster-meta">连载中</div>
+              </div>
+              <div class="poster">
+                <div class="poster-cover"></div>
+                <div class="poster-title">学妹来敲门</div>
+                <div class="poster-meta">收藏</div>
+              </div>
+              <div class="poster">
+                <div class="poster-cover"></div>
+                <div class="poster-title">抱着你睡着</div>
+                <div class="poster-meta">已购</div>
+              </div>
+            </div>
+
+            <div class="row-head">
+              <div class="row-title">权益与资产</div>
+            </div>
+            <div class="menu-card">
+              <div class="menu-row"><span>VIP 会员</span><span style="color: var(--gold);">未开通 ›</span></div>
+            </div>
+            <div class="menu-card">
+              <div class="menu-row"><span>AI 陪伴时长</span><span style="color: var(--sub);">24 分钟 ›</span></div>
+            </div>
+            <div class="menu-card">
+              <div class="menu-row"><span>订单记录</span><span style="color: var(--sub);">›</span></div>
+            </div>
+            <div class="menu-card">
+              <div class="menu-row"><span>账号与设置</span><span style="color: var(--sub);">›</span></div>
+            </div>
+          </div>
+          <div class="sticky">
+            <div class="tabs">
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 9.5V20h14V9.5"></path></svg>
+                </div>
+                <div class="tab-label">首页</div>
+              </div>
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>
+                </div>
+                <div class="tab-label">分类</div>
+              </div>
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M12 3 13.9 8.1 19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"></path><path d="M19 15l.95 2.05L22 18l-2.05.95L19 21l-.95-2.05L16 18l2.05-.95L19 15Z"></path><path d="M5 15l.65 1.35L7 17l-1.35.65L5 19l-.65-1.35L3 17l1.35-.65L5 15Z"></path></svg>
+                </div>
+                <div class="tab-label">AI陪伴</div>
+              </div>
+              <div class="tab active">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M18 19a6 6 0 0 0-12 0"></path><circle cx="12" cy="10" r="4"></circle><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z"></path></svg>
+                </div>
+                <div class="tab-label">我的</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIP 会员购买页 -->
+      <div class="screen-block">
+        <div class="screen-title">VIP 会员页｜权益展示与购买承接</div>
+        <div class="screen-desc">从"我的页 → VIP 会员 › 未开通"进入。展示三档套餐、核心权益列表和推荐购买 CTA，保持内容平台气质，不过度电商化。</div>
+        <div class="phone">
+          <div class="inner">
+            <div class="status"><span>9:41</span><span>5G 100%</span></div>
+            <div class="sub-topbar">
+              <div class="back-btn" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M15 6 9 12l6 6"></path></svg>
+              </div>
+              <div class="nav-title">开通会员</div>
+              <div class="mini-avatar"></div>
+            </div>
+
+            <!-- 会员身份头图 -->
+            <div class="hero" style="height:140px; background: linear-gradient(135deg, rgba(242,192,123,.32), rgba(239,122,168,.22)); margin-bottom:16px;">
+              <div class="hero-label" style="color: var(--gold);">耳边 VIP · 专属权益</div>
+              <div class="hero-title" style="font-size:18px;">听更多，聊更省</div>
+              <div class="hero-sub">会员专区内容随心听 · AI 时长包享优惠价</div>
+            </div>
+
+            <!-- 核心权益列表 -->
+            <div class="row-head">
+              <div class="row-title">会员权益</div>
+            </div>
+            <div class="dialog-card" style="margin-bottom:10px;">
+              <div style="display:flex; flex-direction:column; gap:10px;">
+                <div style="display:flex; gap:10px; align-items:flex-start;">
+                  <div style="color:var(--gold); font-size:16px; flex:0 0 20px;">♪</div>
+                  <div>
+                    <div class="episode-title">会员专区内容免费听</div>
+                    <div class="episode-meta">含连载系列、ASMR 专区等标注"VIP"内容，无需单集解锁</div>
+                  </div>
+                </div>
+                <div style="display:flex; gap:10px; align-items:flex-start;">
+                  <div style="color:var(--gold); font-size:16px; flex:0 0 20px;">%</div>
+                  <div>
+                    <div class="episode-title">单集解锁享折扣</div>
+                    <div class="episode-meta">非会员专区付费内容，会员享 8 折优惠价</div>
+                  </div>
+                </div>
+                <div style="display:flex; gap:10px; align-items:flex-start;">
+                  <div style="color:var(--gold); font-size:16px; flex:0 0 20px;">★</div>
+                  <div>
+                    <div class="episode-title">AI 时长包会员优惠价</div>
+                    <div class="episode-meta">120 分钟时长包 ¥24.9（非会员 ¥29.9）</div>
+                  </div>
+                </div>
+                <div style="display:flex; gap:10px; align-items:flex-start;">
+                  <div style="color:var(--gold); font-size:16px; flex:0 0 20px;">◎</div>
+                  <div>
+                    <div class="episode-title">减少消费阻碍提示</div>
+                    <div class="episode-meta">收听时减少非必要解锁引导弹窗，体验更沉浸</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 三档套餐 -->
+            <div class="row-head">
+              <div class="row-title">选择套餐</div>
+            </div>
+            <div class="pack-card">
+              <div class="pack-title">月卡</div>
+              <div class="pack-price" style="font-size:22px;">¥39</div>
+              <div class="pack-meta">30 天 · 按月灵活续费</div>
+            </div>
+            <div class="pack-card active">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div class="pack-title">季卡</div>
+                <div style="font-size:11px; background: var(--gold); color:#111; padding:2px 8px; border-radius:999px; font-weight:700;">推荐</div>
+              </div>
+              <div class="pack-price" style="font-size:22px;">¥59</div>
+              <div class="pack-meta">90 天 · 相当于 ¥19.7/月，比月卡省一半</div>
+            </div>
+            <div class="pack-card">
+              <div class="pack-title">年卡</div>
+              <div class="pack-price" style="font-size:22px;">¥79</div>
+              <div class="pack-meta">365 天 · 相当于 ¥6.6/月，深度用户首选</div>
+            </div>
+
+            <div class="action-stack">
+              <div class="stack-btn primary">立即开通季卡 ¥59</div>
+              <div class="stack-btn secondary">返回我的</div>
+            </div>
+          </div>
+          <div class="sticky">
+            <div class="tabs">
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 9.5V20h14V9.5"></path></svg>
+                </div>
+                <div class="tab-label">首页</div>
+              </div>
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>
+                </div>
+                <div class="tab-label">分类</div>
+              </div>
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M12 3 13.9 8.1 19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"></path><path d="M19 15l.95 2.05L22 18l-2.05.95L19 21l-.95-2.05L16 18l2.05-.95L19 15Z"></path><path d="M5 15l.65 1.35L7 17l-1.35.65L5 19l-.65-1.35L3 17l1.35-.65L5 15Z"></path></svg>
+                </div>
+                <div class="tab-label">AI陪伴</div>
+              </div>
+              <div class="tab active">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M18 19a6 6 0 0 0-12 0"></path><circle cx="12" cy="10" r="4"></circle><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z"></path></svg>
+                </div>
+                <div class="tab-label">我的</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 订单记录页 -->
+      <div class="screen-block">
+        <div class="screen-title">订单记录页｜已购与资产总览</div>
+        <div class="screen-desc">从"我的页 → 订单记录"进入。一屏承接已购单集、会员状态、AI 时长订单三类资产，避免开多个入口。</div>
+        <div class="phone">
+          <div class="inner">
+            <div class="status"><span>9:41</span><span>5G 100%</span></div>
+            <div class="sub-topbar">
+              <div class="back-btn" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M15 6 9 12l6 6"></path></svg>
+              </div>
+              <div class="nav-title">订单记录</div>
+              <div class="mini-avatar"></div>
+            </div>
+
+            <!-- 会员状态 -->
+            <div class="balance-card" style="background: linear-gradient(135deg, rgba(242,192,123,.18), rgba(239,122,168,.10));">
+              <div class="balance-label" style="color: var(--gold);">当前会员状态</div>
+              <div class="balance-value" style="font-size:20px;">未开通 VIP</div>
+              <div class="balance-sub">开通后可免费听会员专区内容，并享 AI 时长包优惠价。</div>
+            </div>
+
+            <!-- 标签切换占位 -->
+            <div class="chip-row" style="margin: 14px 0 10px;">
+              <div class="filter-chip active">全部</div>
+              <div class="filter-chip">已购内容</div>
+              <div class="filter-chip">AI 时长</div>
+              <div class="filter-chip">会员</div>
+            </div>
+
+            <!-- 订单列表 -->
+            <div class="row-head">
+              <div class="row-title">最近订单</div>
+              <div class="row-link">更多</div>
+            </div>
+
+            <div class="list-card">
+              <div class="list-cover" style="width:48px; height:48px; flex:0 0 48px;"></div>
+              <div>
+                <div class="list-title">今晚我只陪你睡</div>
+                <div class="list-sub">单集解锁 · ¥9.9 · 2026-04-10</div>
+              </div>
+              <div class="list-side">
+                <div class="price-pill">已解锁</div>
+              </div>
+            </div>
+
+            <div class="list-card">
+              <div class="list-cover" style="width:48px; height:48px; flex:0 0 48px;"></div>
+              <div>
+                <div class="list-title">AI 时长包 · 高频回访包</div>
+                <div class="list-sub">120 分钟 · ¥29.9 · 2026-04-08</div>
+              </div>
+              <div class="list-side">
+                <div class="price-pill">已到账</div>
+              </div>
+            </div>
+
+            <div class="list-card">
+              <div class="list-cover" style="width:48px; height:48px; flex:0 0 48px;"></div>
+              <div>
+                <div class="list-title">别生气了，我来哄你</div>
+                <div class="list-sub">单集解锁 · ¥9.9 · 2026-04-05</div>
+              </div>
+              <div class="list-side">
+                <div class="price-pill">已解锁</div>
+              </div>
+            </div>
+
+            <div class="list-card">
+              <div class="list-cover" style="width:48px; height:48px; flex:0 0 48px;"></div>
+              <div>
+                <div class="list-title">AI 时长包 · 轻量陪伴包</div>
+                <div class="list-sub">30 分钟 · ¥9.9 · 2026-03-28</div>
+              </div>
+              <div class="list-side">
+                <div class="price-pill">已到账</div>
+              </div>
+            </div>
+
+            <div class="action-stack">
+              <div class="stack-btn secondary" style="color: var(--gold); border-color: rgba(242,192,123,.3);">开通 VIP 享会员权益</div>
+            </div>
+          </div>
+          <div class="sticky">
+            <div class="tabs">
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 9.5V20h14V9.5"></path></svg>
+                </div>
+                <div class="tab-label">首页</div>
+              </div>
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>
+                </div>
+                <div class="tab-label">分类</div>
+              </div>
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M12 3 13.9 8.1 19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"></path><path d="M19 15l.95 2.05L22 18l-2.05.95L19 21l-.95-2.05L16 18l2.05-.95L19 15Z"></path><path d="M5 15l.65 1.35L7 17l-1.35.65L5 19l-.65-1.35L3 17l1.35-.65L5 15Z"></path></svg>
+                </div>
+                <div class="tab-label">AI陪伴</div>
+              </div>
+              <div class="tab active">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M18 19a6 6 0 0 0-12 0"></path><circle cx="12" cy="10" r="4"></circle><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z"></path></svg>
+                </div>
+                <div class="tab-label">我的</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 已购与片单页 -->
+      <div class="screen-block">
+        <div class="screen-title">片单与已购页｜收藏和继续收听承接</div>
+        <div class="screen-desc">承接首页、播放页、内容详情页里的“加入片单”，也承接我的页里的“我的片单 → 全部”，把收藏、继续收听和已购放到同一页管理。</div>
+        <div class="phone">
+          <div class="inner">
+            <div class="status"><span>9:41</span><span>5G 100%</span></div>
+            <div class="sub-topbar">
+              <div class="back-btn" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M15 6 9 12l6 6"></path></svg>
+              </div>
+              <div class="nav-title">片单与已购</div>
+              <div class="mini-avatar"></div>
+            </div>
+
+            <div class="chip-row" style="margin-bottom: 14px;">
+              <div class="filter-chip active">我的片单</div>
+              <div class="filter-chip">继续收听</div>
+              <div class="filter-chip">已购内容</div>
+            </div>
+
+            <div class="balance-card" style="margin-bottom: 12px;">
+              <div class="balance-label">本周收听资产</div>
+              <div class="balance-value" style="font-size:22px;">12 条已收藏</div>
+              <div class="balance-sub">加入片单后，会同步保存在这里；最近播放内容也会自动出现，方便下次直接继续。</div>
+            </div>
+
+            <div class="row-head">
+              <div class="row-title">继续收听</div>
+              <div class="row-link">最近更新</div>
+            </div>
+            <div class="list-card">
+              <div class="list-cover"></div>
+              <div>
+                <div class="list-title">今晚别挂电话</div>
+                <div class="list-sub">连载中 · 已听到第 3 集 · 下次可直接续播</div>
+              </div>
+              <div class="list-side">
+                <div class="price-pill">继续播放</div>
+                <div class="arrow">›</div>
+              </div>
+            </div>
+
+            <div class="row-head">
+              <div class="row-title">我的片单</div>
+              <div class="row-link">按收藏时间</div>
+            </div>
+            <div class="list-card">
+              <div class="list-cover"></div>
+              <div>
+                <div class="list-title">学妹来敲门</div>
+                <div class="list-sub">轻剧情 · 收藏于 2026-04-12 · 等待更新</div>
+              </div>
+              <div class="list-side">
+                <div class="price-pill">已收藏</div>
+                <div class="arrow">›</div>
+              </div>
+            </div>
+            <div class="list-card">
+              <div class="list-cover"></div>
+              <div>
+                <div class="list-title">抱着你睡着</div>
+                <div class="list-sub">女友音 · 睡前陪伴 · 收藏于 2026-04-10</div>
+              </div>
+              <div class="list-side">
+                <div class="price-pill">已购</div>
+                <div class="arrow">›</div>
+              </div>
+            </div>
+
+            <div class="action-stack">
+              <div class="stack-btn primary">继续播放《今晚别挂电话》</div>
+              <div class="stack-btn secondary">返回首页继续浏览</div>
+            </div>
+          </div>
+          <div class="sticky">
+            <div class="tabs">
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 9.5V20h14V9.5"></path></svg>
+                </div>
+                <div class="tab-label">首页</div>
+              </div>
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>
+                </div>
+                <div class="tab-label">分类</div>
+              </div>
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M12 3 13.9 8.1 19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"></path><path d="M19 15l.95 2.05L22 18l-2.05.95L19 21l-.95-2.05L16 18l2.05-.95L19 15Z"></path><path d="M5 15l.65 1.35L7 17l-1.35.65L5 19l-.65-1.35L3 17l1.35-.65L5 15Z"></path></svg>
+                </div>
+                <div class="tab-label">AI陪伴</div>
+              </div>
+              <div class="tab active">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M18 19a6 6 0 0 0-12 0"></path><circle cx="12" cy="10" r="4"></circle><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z"></path></svg>
+                </div>
+                <div class="tab-label">我的</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI 偏好设置页 -->
+      <div class="screen-block">
+        <div class="screen-title">AI 偏好设置页｜称呼与语气承接</div>
+        <div class="screen-desc">承接 AI 角色页里的“设置称呼与语气”，把称呼、语气、节奏和开场偏好收束到一个轻量设置页里。</div>
+        <div class="phone">
+          <div class="inner">
+            <div class="status"><span>9:41</span><span>5G 100%</span></div>
+            <div class="sub-topbar">
+              <div class="back-btn" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M15 6 9 12l6 6"></path></svg>
+              </div>
+              <div class="nav-title">AI 偏好设置</div>
+              <div class="mini-avatar"></div>
+            </div>
+
+            <div class="dialog-card">
+              <div class="episode-title">当前默认角色</div>
+              <div class="episode-meta">晚安岚岚会优先使用你保存的称呼和语气；切换角色后也会沿用这一套偏好。</div>
+            </div>
+
+            <div class="row-head">
+              <div class="row-title">称呼偏好</div>
+            </div>
+            <div class="chip-row">
+              <div class="filter-chip active">叫我：阿川</div>
+              <div class="filter-chip">叫我：宝贝</div>
+              <div class="filter-chip">直接叫名字</div>
+            </div>
+
+            <div class="row-head">
+              <div class="row-title">语气偏好</div>
+            </div>
+            <div class="chip-row">
+              <div class="filter-chip active">温柔</div>
+              <div class="filter-chip">克制</div>
+              <div class="filter-chip">黏人一点</div>
+              <div class="filter-chip">少一点引导</div>
+            </div>
+
+            <div class="row-head">
+              <div class="row-title">回复节奏</div>
+            </div>
+            <div class="chip-row">
+              <div class="filter-chip">更短句</div>
+              <div class="filter-chip active">慢一点</div>
+              <div class="filter-chip">主动多一点</div>
+            </div>
+
+            <div class="menu-card">
+              <div class="menu-row"><span>开场先接住情绪</span><span style="color: var(--gold);">已开启</span></div>
+            </div>
+            <div class="menu-card">
+              <div class="menu-row"><span>减少反复确认问题</span><span style="color: var(--gold);">已开启</span></div>
+            </div>
+
+            <div class="action-stack">
+              <div class="stack-btn primary">保存并回到角色页</div>
+              <div class="stack-btn secondary">恢复默认偏好</div>
+            </div>
+          </div>
+          <div class="sticky">
+            <div class="tabs">
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 9.5V20h14V9.5"></path></svg>
+                </div>
+                <div class="tab-label">首页</div>
+              </div>
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>
+                </div>
+                <div class="tab-label">分类</div>
+              </div>
+              <div class="tab active">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M12 3 13.9 8.1 19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"></path><path d="M19 15l.95 2.05L22 18l-2.05.95L19 21l-.95-2.05L16 18l2.05-.95L19 15Z"></path><path d="M5 15l.65 1.35L7 17l-1.35.65L5 19l-.65-1.35L3 17l1.35-.65L5 15Z"></path></svg>
+                </div>
+                <div class="tab-label">AI陪伴</div>
+              </div>
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M18 19a6 6 0 0 0-12 0"></path><circle cx="12" cy="10" r="4"></circle><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z"></path></svg>
+                </div>
+                <div class="tab-label">我的</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 账号与设置页 -->
+      <div class="screen-block">
+        <div class="screen-title">账号与设置页｜账号和通知承接</div>
+        <div class="screen-desc">承接我的页里的“账号与设置”，把账号、通知、播放偏好与协议入口集中管理，不再悬空。</div>
+        <div class="phone">
+          <div class="inner">
+            <div class="status"><span>9:41</span><span>5G 100%</span></div>
+            <div class="sub-topbar">
+              <div class="back-btn" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M15 6 9 12l6 6"></path></svg>
+              </div>
+              <div class="nav-title">账号与设置</div>
+              <div class="mini-avatar"></div>
+            </div>
+
+            <div class="profile-card" style="margin-bottom: 12px;">
+              <div class="profile-avatar"></div>
+              <div>
+                <div class="hero-title" style="font-size:18px;">今晚早点睡</div>
+                <div class="series-meta">手机号 138 **** 2026 · 已开启夜间提醒</div>
+              </div>
+            </div>
+
+            <div class="row-head">
+              <div class="row-title">账号信息</div>
+            </div>
+            <div class="menu-card">
+              <div class="menu-row"><span>绑定手机号</span><span style="color: var(--sub);">138 **** 2026 ›</span></div>
+            </div>
+            <div class="menu-card">
+              <div class="menu-row"><span>登录设备管理</span><span style="color: var(--sub);">2 台设备 ›</span></div>
+            </div>
+
+            <div class="row-head">
+              <div class="row-title">使用偏好</div>
+            </div>
+            <div class="menu-card">
+              <div class="menu-row"><span>新内容更新提醒</span><span style="color: var(--gold);">已开启</span></div>
+            </div>
+            <div class="menu-card">
+              <div class="menu-row"><span>夜间免打扰</span><span style="color: var(--gold);">23:30 - 08:00</span></div>
+            </div>
+            <div class="menu-card">
+              <div class="menu-row"><span>连续播放默认开启</span><span style="color: var(--gold);">已开启</span></div>
+            </div>
+
+            <div class="row-head">
+              <div class="row-title">帮助与协议</div>
+            </div>
+            <div class="menu-card">
+              <div class="menu-row"><span>隐私政策</span><span style="color: var(--sub);">›</span></div>
+            </div>
+            <div class="menu-card">
+              <div class="menu-row"><span>用户协议</span><span style="color: var(--sub);">›</span></div>
+            </div>
+            <div class="menu-card">
+              <div class="menu-row"><span>联系客服</span><span style="color: var(--sub);">›</span></div>
+            </div>
+
+            <div class="action-stack">
+              <div class="stack-btn secondary">退出登录</div>
+            </div>
+          </div>
+          <div class="sticky">
+            <div class="tabs">
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 9.5V20h14V9.5"></path></svg>
+                </div>
+                <div class="tab-label">首页</div>
+              </div>
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>
+                </div>
+                <div class="tab-label">分类</div>
+              </div>
+              <div class="tab">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M12 3 13.9 8.1 19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"></path><path d="M19 15l.95 2.05L22 18l-2.05.95L19 21l-.95-2.05L16 18l2.05-.95L19 15Z"></path><path d="M5 15l.65 1.35L7 17l-1.35.65L5 19l-.65-1.35L3 17l1.35-.65L5 15Z"></path></svg>
+                </div>
+                <div class="tab-label">AI陪伴</div>
+              </div>
+              <div class="tab active">
+                <div class="tab-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M18 19a6 6 0 0 0-12 0"></path><circle cx="12" cy="10" r="4"></circle><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z"></path></svg>
+                </div>
+                <div class="tab-label">我的</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="note">
+      V3 完整原型已覆盖全部核心页面，主要路径现在都有页面承接：<br><br>
+      <strong>内容链路</strong>：首页 → 内容详情页 → 播放页；首页 → 连载专区 → 连载详情页 → 播放页；分类页 → 内容详情页；加入片单 → 片单与已购页<br>
+      <strong>AI 链路</strong>：AI陪伴（底部导航）→ AI角色页 → AI对话页 → AI时长包页（购买续费）；AI角色页 → AI 偏好设置页<br>
+      <strong>付费链路</strong>：内容详情 "单集解锁" → 订单记录承接；我的页 "VIP 会员 未开通" → VIP 会员购买页；我的页 "AI 陪伴时长" → AI 时长包页；我的页 "订单记录" → 订单记录页<br>
+      <strong>账号链路</strong>：我的页 → 账号与设置页，集中管理账号信息、通知与协议入口<br><br>
+      当前只保留少量轻量级交互未细展开（如筛选切换态、购买成功反馈、退出登录确认），但不影响主路径和关键次级入口的页面闭环。
+    </div>
+  </div>
+</body>
+</html>

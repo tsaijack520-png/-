@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>耳边 - 低保真原型</title>
+  <style>
+    :root {
+      --bg: #0f1020;
+      --panel: #1b1d33;
+      --panel-2: #232642;
+      --text: #f7f3fa;
+      --sub: #c9c2d6;
+      --muted: #8e88a2;
+      --pink: #f47ca8;
+      --purple: #a88cff;
+      --gold: #f6c27a;
+      --line: #2a2d46;
+      --green: #62d1a8;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+      background: linear-gradient(180deg, #0b0d18 0%, #141729 100%);
+      color: var(--text);
+    }
+    .page {
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 28px 24px 60px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      font-weight: 700;
+    }
+    .intro {
+      color: var(--sub);
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+    .chooser {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 22px;
+      align-items: start;
+    }
+    .phone-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .label {
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .desc {
+      color: var(--sub);
+      font-size: 13px;
+      line-height: 1.55;
+      min-height: 40px;
+    }
+    .phone {
+      width: 100%;
+      max-width: 390px;
+      min-height: 844px;
+      border-radius: 34px;
+      background: var(--bg);
+      border: 1px solid #313656;
+      box-shadow: 0 30px 70px rgba(0,0,0,.35);
+      overflow: hidden;
+      position: relative;
+    }
+    .screen {
+      padding: 18px 16px 96px;
+    }
+    .status {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .brand { font-size: 22px; font-weight: 700; }
+    .icon-btn {
+      color: var(--sub);
+      font-size: 14px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+    }
+    .search {
+      background: #17192d;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      padding: 12px 14px;
+      border-radius: 14px;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+    .banner {
+      background: linear-gradient(135deg, rgba(244,124,168,.24), rgba(168,140,255,.22));
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .banner h3 {
+      margin: 0 0 6px;
+      font-size: 18px;
+    }
+    .banner p {
+      margin: 0;
+      color: var(--sub);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .banner .cta {
+      display: inline-block;
+      margin-top: 12px;
+      background: var(--pink);
+      color: white;
+      font-size: 13px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+    .section { margin-bottom: 18px; }
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .section-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: -6px;
+      margin-bottom: 10px;
+    }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .chip {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #1a1c30;
+      border: 1px solid var(--line);
+      color: var(--text);
+      font-size: 12px;
+    }
+    .chip.active {
+      background: rgba(244,124,168,.18);
+      border-color: rgba(244,124,168,.45);
+      color: #ffd6e4;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .content-card {
+      display: grid;
+      grid-template-columns: 84px 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+    .cover {
+      width: 84px;
+      height: 84px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(244,124,168,.6), rgba(168,140,255,.55));
+      position: relative;
+      overflow: hidden;
+    }
+    .cover::after {
+      content: "";
+      position: absolute;
+      inset: 12px;
+      border-radius: 12px;
+      border: 1px dashed rgba(255,255,255,.25);
+    }
+    .title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .meta, .muted {
+      color: var(--sub);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .tiny { color: var(--muted); font-size: 12px; }
+    .inline-tags { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0; }
+    .tag {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #262944;
+      color: #ece7f3;
+    }
+    .tag.vip { background: rgba(246,194,122,.15); color: #ffd9a4; }
+    .tag.ai { background: rgba(168,140,255,.16); color: #d9c9ff; }
+    .actions { display: flex; gap: 8px; margin-top: 8px; }
+    .btn {
+      border-radius: 12px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid transparent;
+    }
+    .btn.primary { background: var(--pink); color: #fff; }
+    .btn.secondary { background: transparent; color: var(--sub); border-color: var(--line); }
+    .ai-entry {
+      display: grid;
+      grid-template-columns: 54px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      background: linear-gradient(135deg, rgba(168,140,255,.18), rgba(244,124,168,.16));
+    }
+    .avatar {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #f7a6c2, #8f86ff);
+    }
+    .series-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .series-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+    .right-link { color: #ffd8e6; font-size: 12px; font-weight: 600; }
+    .vip-banner {
+      background: linear-gradient(135deg, rgba(246,194,122,.18), rgba(244,124,168,.12));
+    }
+    .bottom-nav {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      background: rgba(12,13,25,.92);
+      border-top: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      padding: 10px 8px 20px;
+    }
+    .tab {
+      text-align: center;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .tab.active { color: var(--text); }
+    .divider { height: 1px; background: var(--line); margin: 14px 0; }
+    .hero-card {
+      background: linear-gradient(135deg, rgba(244,124,168,.18), rgba(168,140,255,.14));
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 18px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+    .hero-row { display: flex; gap: 12px; }
+    .hero-avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #f4a2bf, #8f86ff);
+      flex-shrink: 0;
+    }
+    .kpi {
+      display: flex;
+      justify-content: space-between;
+      color: var(--sub);
+      font-size: 12px;
+      margin-top: 8px;
+    }
+    .picker-note {
+      margin-top: 22px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      color: var(--sub);
+      line-height: 1.7;
+      font-size: 14px;
+    }
+    .compare-title {
+      color: #ffd8e6;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>耳边低保真首页原型</h1>
+    <div class="intro">
+      下面是 3 套可直接对比的移动端首页低保真原型。你可以先凭视觉感受选择主方向，再继续细化到 Figma。
+      其中 <strong>A2</strong> 是当前最推荐的版本：内容主导，但明确保留 AI 陪伴入口。
+    </div>
+
+    <div class="chooser">
+      <div class="phone-wrap">
+        <div class="label">方案 A1｜内容付费最强</div>
+        <div class="desc">首页几乎完全围绕“找内容、试听、解锁”展开。适合最先验证内容付费，但 AI 存在感较弱。</div>
+        <div class="phone">
+          <div class="screen">
+            <div class="status"><span>9:41</span><span>5G 100%</span></div>
+            <div class="topbar"><div class="brand">耳边</div><div class="icon-btn">搜索</div></div>
+            <div class="search">搜索角色、主播、场景</div>
+            <div class="banner">
+              <h3>先听 30 秒，再决定要不要心动</h3>
+              <p>新人可免费试听，喜欢再解锁完整内容。</p>
+              <span class="cta">开始试听</span>
+            </div>
+
+            <div class="section">
+              <div class="section-title">你现在想听什么</div>
+              <div class="chips">
+                <div class="chip active">女友音</div><div class="chip">男友音</div><div class="chip">学妹音</div><div class="chip">霸总音</div>
+                <div class="chip">睡前陪伴</div><div class="chip">早安叫醒</div><div class="chip">吵架和好</div><div class="chip">情景剧</div>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">今日推荐</div>
+              <div class="card content-card">
+                <div class="cover"></div>
+                <div>
+                  <div class="title">今晚我陪你睡</div>
+                  <div class="meta">小耳朵</div>
+                  <div class="inline-tags"><span class="tag">女友音</span><span class="tag">睡前陪伴</span></div>
+                  <div class="tiny">18 分钟 · ¥9.9</div>
+                  <div class="actions"><div class="btn secondary">试听</div><div class="btn primary">解锁</div></div>
+                </div>
+              </div>
+              <div class="card content-card">
+                <div class="cover"></div>
+                <div>
+                  <div class="title">别生气了，我来哄你</div>
+                  <div class="meta">晚晚</div>
+                  <div class="inline-tags"><span class="tag">和好</span><span class="tag">角色扮演</span></div>
+                  <div class="tiny">12 分钟 · ¥6.9</div>
+                  <div class="actions"><div class="btn secondary">试听</div><div class="btn primary">解锁</div></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">连载专区</div>
+              <div class="card series-row">
+                <div>
+                  <div class="series-title">《今晚别挂电话》</div>
+                  <div class="meta">更新至第 8 集</div>
+                </div>
+                <div class="right-link">去追更</div>
+              </div>
+              <div class="card series-row">
+                <div>
+                  <div class="series-title">《学妹来敲门》</div>
+                  <div class="meta">更新至第 5 集</div>
+                </div>
+                <div class="right-link">去追更</div>
+              </div>
+            </div>
+
+            <div class="banner vip-banner">
+              <h3>开通 VIP，听更多完整陪伴</h3>
+              <p>会员专区免费听，部分内容更划算。</p>
+              <span class="cta" style="background: var(--gold); color:#2b1b10;">去开通</span>
+            </div>
+          </div>
+          <div class="bottom-nav">
+            <div class="tab active">首页</div>
+            <div class="tab">分类</div>
+            <div class="tab">AI陪伴</div>
+            <div class="tab">我的</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phone-wrap">
+        <div class="label">方案 A2｜内容主导 + AI 有存在感</div>
+        <div class="desc">推荐方案。首页主线仍是内容消费，但用一个明显的 AI 入口卡建立差异化，适合你的 MVP 方向。</div>
+        <div class="phone">
+          <div class="screen">
+            <div class="status"><span>9:41</span><span>5G 100%</span></div>
+            <div class="topbar"><div class="brand">耳边</div><div class="icon-btn">搜索</div></div>
+            <div class="search">搜索角色、主播、场景</div>
+            <div class="banner">
+              <h3>先听 30 秒，再决定要不要心动</h3>
+              <p>新人可免费试听，喜欢再解锁完整内容。</p>
+              <span class="cta">去看看</span>
+            </div>
+
+            <div class="section">
+              <div class="section-title">你现在想听什么</div>
+              <div class="chips">
+                <div class="chip active">女友音</div><div class="chip">男友音</div><div class="chip">学妹音</div><div class="chip">霸总音</div>
+                <div class="chip">睡前陪伴</div><div class="chip">早安叫醒</div><div class="chip">和好</div><div class="chip">情景剧</div>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">今日推荐</div>
+              <div class="card content-card">
+                <div class="cover"></div>
+                <div>
+                  <div class="title">今晚我只陪你睡</div>
+                  <div class="meta">主播：小耳朵</div>
+                  <div class="inline-tags"><span class="tag">女友音</span><span class="tag">睡前陪伴</span></div>
+                  <div class="tiny">18 分钟 · ¥9.9</div>
+                  <div class="actions"><div class="btn secondary">试听</div><div class="btn primary">¥9.9 解锁</div></div>
+                </div>
+              </div>
+              <div class="card content-card">
+                <div class="cover"></div>
+                <div>
+                  <div class="title">学妹今天只想黏着你</div>
+                  <div class="meta">主播：糯糯</div>
+                  <div class="inline-tags"><span class="tag">学妹音</span><span class="tag vip">VIP可听</span></div>
+                  <div class="tiny">9 分钟 · 会员专区</div>
+                  <div class="actions"><div class="btn secondary">试听</div><div class="btn primary">开通 VIP</div></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="compare-title">AI 轻入口</div>
+              <div class="card ai-entry">
+                <div class="avatar"></div>
+                <div>
+                  <div class="title" style="margin-bottom:3px;">今晚想找人聊聊吗？</div>
+                  <div class="meta">温柔女友 / 高冷御姐 / 学妹陪伴</div>
+                </div>
+                <div class="btn primary">去聊聊</div>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">连载专区</div>
+              <div class="card series-row">
+                <div>
+                  <div class="series-title">《今晚别挂电话》</div>
+                  <div class="meta">她每天深夜都会打给你 · 第 8 集</div>
+                </div>
+                <div class="right-link">去追更</div>
+              </div>
+              <div class="card series-row">
+                <div>
+                  <div class="series-title">《学妹来敲门》</div>
+                  <div class="meta">门外站着的，是只想见你的她 · 第 5 集</div>
+                </div>
+                <div class="right-link">去追更</div>
+              </div>
+            </div>
+
+            <div class="banner vip-banner">
+              <h3>开通 VIP，听更多完整陪伴</h3>
+              <p>会员专区免费听，AI 时长包也更划算。</p>
+              <span class="cta" style="background: var(--gold); color:#2b1b10;">去开通</span>
+            </div>
+          </div>
+          <div class="bottom-nav">
+            <div class="tab active">首页</div>
+            <div class="tab">分类</div>
+            <div class="tab">AI陪伴</div>
+            <div class="tab">我的</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="phone-wrap">
+        <div class="label">方案 B｜AI 陪伴优先</div>
+        <div class="desc">首页更像“今晚想和谁聊天”，AI 是绝对主角，内容退到第二层。更适合以后主打 AI 关系型产品。</div>
+        <div class="phone">
+          <div class="screen">
+            <div class="status"><span>9:41</span><span>5G 100%</span></div>
+            <div class="topbar"><div class="brand">耳边</div><div class="icon-btn">余额 24m</div></div>
+            <div class="hero-card">
+              <div class="hero-row">
+                <div class="hero-avatar"></div>
+                <div>
+                  <div class="title" style="font-size:18px;">今晚想和谁说话？</div>
+                  <div class="meta">温柔女友正在等你开口。她会记得你上次说过的话。</div>
+                  <div class="actions"><div class="btn primary">立即开始对话</div></div>
+                </div>
+              </div>
+              <div class="kpi"><span>剩余时长 24 分钟</span><span style="color:var(--gold)">购买时长包</span></div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">热门角色</div>
+              <div class="card ai-entry">
+                <div class="avatar"></div>
+                <div>
+                  <div class="title" style="margin-bottom:3px;">温柔女友</div>
+                  <div class="meta">会安慰你，也会哄你慢慢睡着</div>
+                </div>
+                <div class="btn primary">开始</div>
+              </div>
+              <div class="card ai-entry">
+                <div class="avatar" style="background:linear-gradient(135deg,#9da6ff,#d48cff);"></div>
+                <div>
+                  <div class="title" style="margin-bottom:3px;">高冷御姐</div>
+                  <div class="meta">成熟、慢热、会记住你的情绪</div>
+                </div>
+                <div class="btn primary">开始</div>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">适合今晚听的内容</div>
+              <div class="card content-card">
+                <div class="cover"></div>
+                <div>
+                  <div class="title">今晚我陪你睡</div>
+                  <div class="meta">小耳朵</div>
+                  <div class="inline-tags"><span class="tag">睡前陪伴</span><span class="tag ai">适合对话后听</span></div>
+                  <div class="actions"><div class="btn secondary">试听</div><div class="btn primary">解锁</div></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="banner vip-banner">
+              <h3>AI 陪伴时长包</h3>
+              <p>30 分钟 ¥9.9，适合今晚试着聊一会儿。</p>
+              <span class="cta" style="background: var(--gold); color:#2b1b10;">去购买</span>
+            </div>
+          </div>
+          <div class="bottom-nav">
+            <div class="tab active">首页</div>
+            <div class="tab">发现</div>
+            <div class="tab">AI陪伴</div>
+            <div class="tab">我的</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="picker-note">
+      <strong>建议：</strong>如果你现在是做 MVP，优先考虑 <strong>A2</strong>。它比 A1 更有产品差异化，又比 B 更稳、更容易先跑通“试听 → 解锁 / VIP”这条付费主链路。<br />
+      如果你愿意，我下一步可以继续把其中你选中的方案，扩展成一整套本地可点击 HTML 原型，包含：首页、分类、内容详情、播放页、AI 角色页、AI 对话页。
+    </div>
+  </div>
+</body>
+</html>
