@@ -1,12 +1,16 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
-import { SubPageHeader } from '../components/SubPageHeader'
+import { EmptyState, StatusCard } from '../components/FeedbackBlocks'
+import { AppleIcon, InfoIcon, WalletIcon } from '../components/Icons'
 import { creatorStats, creatorStatusLabelMap } from '../data/mockData'
 import { useMockSession } from '../hooks/useMockSession'
+import { SubPageHeader } from '../components/SubPageHeader'
 
 export function CreatorStudioPage() {
   const { creatorUploads, isCreator } = useMockSession()
   const isPreview = !isCreator
+  const [pendingNotice, setPendingNotice] = useState<string>('')
 
   return (
     <div className="page page--detail">
@@ -24,6 +28,13 @@ export function CreatorStudioPage() {
           </Link>
         </section>
       ) : null}
+
+      <StatusCard
+        eyebrow="收益策略"
+        title="展示收益能力，但隐藏提现口"
+        description="当前阶段先证明内容有转化能力，因此保留收益感知和订单表现，暂不开放提现与打款入口，避免形成不可用死路。"
+        icon={<WalletIcon className="status-card__glyph" />}
+      />
 
       <section className="creator-stats-grid">
         <article className="info-card">
@@ -44,6 +55,28 @@ export function CreatorStudioPage() {
         </article>
       </section>
 
+      <StatusCard
+        eyebrow="结算说明"
+        title="本月收入仅作转化感知展示"
+        description="正式结算与提现能力还未开通，所以这里先用收入数字承接创作者信心，不暴露银行卡、支付宝或提现申请入口。"
+        tone="warning"
+        icon={<AppleIcon className="status-card__glyph" />}
+      />
+
+      {pendingNotice ? (
+        <StatusCard
+          eyebrow="上线后开放"
+          title="这个入口当前演示阶段暂不开放"
+          description={pendingNotice}
+          icon={<InfoIcon className="status-card__glyph" />}
+          actions={
+            <button type="button" className="button button--ghost" onClick={() => setPendingNotice('')}>
+              我知道了
+            </button>
+          }
+        />
+      ) : null}
+
       <section className="page-section page-section--compact">
         <div className="section-header">
           <h2 className="section-header__title">内容管理</h2>
@@ -51,35 +84,61 @@ export function CreatorStudioPage() {
             去上传
           </Link>
         </div>
-        <div className="creator-upload-list">
-          {creatorUploads.map((item) => (
-            <article key={item.id} className="creator-upload-card">
-              <div className="creator-upload-card__head">
-                <div>
-                  <div className="creator-upload-card__title">{item.title}</div>
-                  <div className="creator-upload-card__meta">
-                    {item.role} · {item.scene} · {item.updatedAt}
+        {creatorUploads.length === 0 ? (
+          <EmptyState
+            title="还没有内容草稿"
+            description="先上传一条草稿，后续再通过工作台查看审核状态与内容表现。"
+            action={
+              <Link to="/creator/upload" className="button button--secondary">
+                去上传内容
+              </Link>
+            }
+          />
+        ) : (
+          <div className="creator-upload-list">
+            {creatorUploads.map((item) => (
+              <article key={item.id} className="creator-upload-card">
+                <div className="creator-upload-card__head">
+                  <div>
+                    <div className="creator-upload-card__title">{item.title}</div>
+                    <div className="creator-upload-card__meta">
+                      {item.role} · {item.scene} · {item.updatedAt}
+                    </div>
                   </div>
+                  <span className={`badge creator-status-badge creator-status-badge--${item.status}`}>
+                    {creatorStatusLabelMap[item.status]}
+                  </span>
                 </div>
-                <span className={`badge creator-status-badge creator-status-badge--${item.status}`}>
-                  {creatorStatusLabelMap[item.status]}
-                </span>
-              </div>
-              <div className="creator-upload-card__stats">
-                <span>播放 {item.playCount}</span>
-                <span>订单 {item.orderCount}</span>
-              </div>
-              <div className="creator-upload-card__actions">
-                <button type="button" className="button button--secondary" disabled={isPreview}>
-                  查看数据
-                </button>
-                <button type="button" className="button button--ghost" disabled={isPreview}>
-                  编辑内容
-                </button>
-              </div>
-            </article>
-          ))}
-        </div>
+                <div className="creator-upload-card__stats">
+                  <span>播放 {item.playCount}</span>
+                  <span>订单 {item.orderCount}</span>
+                </div>
+                <div className="creator-upload-card__actions">
+                  <button
+                    type="button"
+                    className="button button--secondary"
+                    disabled={isPreview}
+                    onClick={() =>
+                      setPendingNotice('数据看板在下一个版本开放，目前创作者端先聚焦上传与审核反馈节奏。')
+                    }
+                  >
+                    查看数据
+                  </button>
+                  <button
+                    type="button"
+                    className="button button--ghost"
+                    disabled={isPreview}
+                    onClick={() =>
+                      setPendingNotice('内容编辑会和审核复投串联，目前先在上传页重新提交新草稿替代编辑。')
+                    }
+                  >
+                    编辑内容
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   )

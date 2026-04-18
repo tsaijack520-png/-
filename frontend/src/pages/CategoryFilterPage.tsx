@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 import { FilterChip, ListCard } from '../components/ContentBlocks'
+import { EmptyState } from '../components/FeedbackBlocks'
 import { SectionHeader } from '../components/SectionHeader'
 import { categoryContents, categoryFilterMeta } from '../data/mockData'
 import { SubPageHeader } from '../components/SubPageHeader'
@@ -68,19 +69,26 @@ export function CategoryFilterPage() {
 
       <section className="page-section page-section--compact">
         <SectionHeader title="关联内容" actionLabel="" />
-        <div className="list-stack">
-          {previewContents.map((item) => (
-            <ListCard
-              key={item.id}
-              title={item.title}
-              meta={item.meta}
-              badge={item.badge}
-              badgeTone={item.badgeTone}
-              tone={item.tone}
-              to={`/content/${item.id}`}
-            />
-          ))}
-        </div>
+        {previewContents.length > 0 ? (
+          <div className="list-stack">
+            {previewContents.map((item) => (
+              <ListCard
+                key={item.id}
+                title={item.title}
+                meta={item.meta}
+                badge={item.badge}
+                badgeTone={item.badgeTone}
+                tone={item.tone}
+                to={`/content/${item.id}`}
+              />
+            ))}
+          </div>
+        ) : (
+          <EmptyState
+            title="这个标签暂时没有内容"
+            description="可以先换一个标签试试，或者直接应用回分类页再组合其它筛选。"
+          />
+        )}
       </section>
 
       <button type="button" className="button button--primary button--block" onClick={handleApply}>

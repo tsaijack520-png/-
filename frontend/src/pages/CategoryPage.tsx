@@ -8,6 +8,7 @@ import {
   sortFilters,
 } from '../data/mockData'
 import { FilterChip, ListCard } from '../components/ContentBlocks'
+import { EmptyState } from '../components/FeedbackBlocks'
 import { SectionHeader } from '../components/SectionHeader'
 import { TopBar } from '../components/TopBar'
 
@@ -37,12 +38,16 @@ export function CategoryPage() {
     })
   }, [activeRole, activeScene, activeSort])
 
-  const visibleContents = filteredContents.length > 0 ? filteredContents : categoryContents
+  const hasMatches = filteredContents.length > 0
 
   function updateFilter(key: 'role' | 'scene' | 'sort', value: string) {
     const nextParams = new URLSearchParams(searchParams)
     nextParams.set(key, value)
     setSearchParams(nextParams)
+  }
+
+  function resetFilters() {
+    setSearchParams(new URLSearchParams())
   }
 
   return (
@@ -93,19 +98,31 @@ export function CategoryPage() {
 
       <section className="page-section page-section--compact">
         <SectionHeader title="匹配内容" actionLabel="" />
-        <div className="list-stack">
-          {visibleContents.map((item) => (
-            <ListCard
-              key={item.id}
-              title={item.title}
-              meta={item.meta}
-              badge={item.badge}
-              badgeTone={item.badgeTone}
-              tone={item.tone}
-              to={`/content/${item.id}`}
-            />
-          ))}
-        </div>
+        {hasMatches ? (
+          <div className="list-stack">
+            {filteredContents.map((item) => (
+              <ListCard
+                key={item.id}
+                title={item.title}
+                meta={item.meta}
+                badge={item.badge}
+                badgeTone={item.badgeTone}
+                tone={item.tone}
+                to={`/content/${item.id}`}
+              />
+            ))}
+          </div>
+        ) : (
+          <EmptyState
+            title="当前筛选没有匹配内容"
+            description="这个声线 × 场景 × 排序的组合暂时没有内容，可以换一个筛选或清空后重新浏览。"
+            action={
+              <button type="button" className="button button--secondary" onClick={resetFilters}>
+                清空筛选
+              </button>
+            }
+          />
+        )}
       </section>
     </div>
   )

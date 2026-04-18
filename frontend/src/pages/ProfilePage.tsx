@@ -1,29 +1,41 @@
 import { Link } from 'react-router-dom'
 
 import { MenuCard, PosterCard } from '../components/ContentBlocks'
-import { SectionHeader } from '../components/SectionHeader'
-import { assetEntries, profilePlaylist, profileSummary } from '../data/mockData'
+import { StatusCard } from '../components/FeedbackBlocks'
+import { InfoIcon, WalletIcon } from '../components/Icons'
 import { useMockSession } from '../hooks/useMockSession'
+import { SectionHeader } from '../components/SectionHeader'
 
 export function ProfilePage() {
-  const { user, isAuthenticated, isCreator } = useMockSession()
-  const profileAssets = assetEntries.map((item) => {
-    if (item.id === 'vip') {
-      return {
-        ...item,
-        value: user?.vipStatus.subscriptionActive ? '已开通' : '未开通',
-      }
-    }
-
-    if (item.id === 'ai-time') {
-      return {
-        ...item,
-        value: `${profileSummary.aiMinutes} 分钟`,
-      }
-    }
-
-    return item
-  })
+  const { user, isAuthenticated, isCreator, playlistItems, profileSummary } = useMockSession()
+  const profileAssets = [
+    {
+      id: 'vip',
+      label: 'VIP 会员',
+      value: user?.vipStatus.subscriptionActive ? '已开通' : '未开通',
+      tone: 'gold' as const,
+      to: '/me/vip',
+    },
+    {
+      id: 'ai-time',
+      label: 'AI 陪伴时长',
+      value: `${profileSummary.aiMinutes} 分钟`,
+      tone: 'accent' as const,
+      to: '/ai/packs',
+    },
+    {
+      id: 'orders',
+      label: '订单记录',
+      value: '查看全部',
+      to: '/me/orders',
+    },
+    {
+      id: 'settings',
+      label: '账号与绑定',
+      value: '头像 / 手机 / 邮箱 / Apple',
+      to: '/me/settings',
+    },
+  ]
 
   if (!isAuthenticated || !user) {
     return (
@@ -66,8 +78,7 @@ export function ProfilePage() {
               </span>
             </div>
             <div className="profile-summary__meta">
-              已购内容 {profileSummary.purchasedCount} · 片单 {profileSummary.playlistCount} · AI 时长{' '}
-              {profileSummary.aiMinutes} 分钟
+              已购内容 {profileSummary.purchasedCount} · 片单 {profileSummary.playlistCount} · AI 时长 {profileSummary.aiMinutes} 分钟
             </div>
           </div>
         </div>
@@ -78,10 +89,17 @@ export function ProfilePage() {
         ) : null}
       </section>
 
+      <StatusCard
+        eyebrow="当前产品阶段"
+        title="先承接回访，再引导轻量转化"
+        description="耳边当前定位是引流产品，优先让用户形成内容偏好、建立回访与轻交易心智，再承接后续会员和 AI 时长转化。"
+        icon={<InfoIcon className="status-card__glyph" />}
+      />
+
       <section className="page-section">
         <SectionHeader title="我的片单" moreTo="/me/playlist" />
         <div className="poster-row">
-          {profilePlaylist.map((item) => (
+          {playlistItems.slice(0, 3).map((item) => (
             <PosterCard
               key={item.id}
               title={item.title}
@@ -103,6 +121,17 @@ export function ProfilePage() {
           ))}
         </div>
       </section>
+
+      <StatusCard
+        eyebrow="转化入口"
+        title={isCreator ? '创作者侧先看收益表现，不开放提现' : `当前点数 ${user.vipStatus.creditBalance} 点`}
+        description={
+          isCreator
+            ? '提现与正式结算暂不支持，所以本期只展示收益能力与内容表现，不暴露不可用入口。'
+            : '会员、点数和 AI 时长先做轻量闭环，避免让用户在引流阶段面对过重的付费决策。'
+        }
+        icon={<WalletIcon className="status-card__glyph" />}
+      />
     </div>
   )
 }

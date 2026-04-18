@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import { defaultMockSession, mockUsers } from '../data/mockData'
 import { useMockSession } from '../hooks/useMockSession'
 import type { AuthMethod, MockUser, UserRole } from '../types/app'
-import { AppleIcon, EarBrandMark, MailIcon, PhoneIcon } from '../components/Icons'
+import { AppleIcon, EarBrandMark, InfoIcon, MailIcon, PhoneIcon } from '../components/Icons'
+import { StatusCard } from '../components/FeedbackBlocks'
 
 const secondaryMethods: { value: Exclude<AuthMethod, 'nickname'>; label: string; Icon: typeof PhoneIcon }[] = [
   { value: 'phone', label: '手机号登录', Icon: PhoneIcon },
@@ -142,6 +143,12 @@ export function AuthPage() {
       </div>
 
       <section className="auth-card">
+        <StatusCard
+          eyebrow="当前阶段"
+          title="先把首次登录做顺，再承接后续转化"
+          description="耳边当前是引流产品，所以登录页优先强调低门槛进入与身份选择，不让用户一开始就背上重交易决策。"
+          icon={<InfoIcon className="status-card__glyph" />}
+        />
         <div className="auth-card__top">
           <div className="auth-tab-bar auth-tab-bar--inline">
             <button
@@ -275,6 +282,18 @@ export function AuthPage() {
           </div>
         )}
       </section>
+
+      <div className="auth-legal-links">
+        <Link to="/support/privacy" className="section-header__action-link">
+          隐私政策
+        </Link>
+        <Link to="/support/terms" className="section-header__action-link">
+          用户协议
+        </Link>
+        <Link to="/support/help" className="section-header__action-link">
+          帮助与反馈
+        </Link>
+      </div>
     </div>
   )
 }

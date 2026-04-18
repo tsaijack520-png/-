@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
 
 import { AppShell } from './components/AppShell'
 import { AIChatPage } from './pages/AIChatPage'
@@ -13,12 +13,14 @@ import { CreatorStudioPage } from './pages/CreatorStudioPage'
 import { CreatorUploadPage } from './pages/CreatorUploadPage'
 import { HomePage } from './pages/HomePage'
 import { HomeSectionPage } from './pages/HomeSectionPage'
+import { NotFoundPage } from './pages/NotFoundPage'
 import { PlayerPage } from './pages/PlayerPage'
 import { ProfileOrdersPage } from './pages/ProfileOrdersPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { ProfilePlaylistPage } from './pages/ProfilePlaylistPage'
 import { ProfileSettingsPage } from './pages/ProfileSettingsPage'
 import { ProfileVipPage } from './pages/ProfileVipPage'
+import { StaticPage } from './pages/StaticPage'
 import './App.css'
 
 function App() {
@@ -40,11 +42,12 @@ function App() {
           <Route path="/me/vip" element={<ProfileVipPage />} />
           <Route path="/me/orders" element={<ProfileOrdersPage />} />
           <Route path="/me/settings" element={<ProfileSettingsPage />} />
+          <Route path="/support/:pageId" element={<StaticPage />} />
           <Route path="/creator/studio" element={<CreatorStudioPage />} />
           <Route path="/creator/upload" element={<CreatorUploadPage />} />
           <Route path="/content/:contentId" element={<ContentDetailPage />} />
           <Route path="/player/:contentId" element={<PlayerPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

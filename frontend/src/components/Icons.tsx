@@ -162,6 +162,43 @@ export function AppleIcon(props: SVGProps<SVGSVGElement>) {
   )
 }
 
+export function WalletIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <FilledIcon {...props}>
+      <path d="M4.5 7.5A2.5 2.5 0 0 1 7 5h9.5a2 2 0 0 1 0 4H7a1 1 0 0 0 0 2h12.5v6.2a2.3 2.3 0 0 1-2.3 2.3H7A2.5 2.5 0 0 1 4.5 17V7.5Z" fill="currentColor" />
+      <circle cx="16.5" cy="13.8" r="1.2" fill="white" opacity="0.9" />
+    </FilledIcon>
+  )
+}
+
+export function CheckCircleIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <FilledIcon {...props}>
+      <circle cx="12" cy="12" r="9" fill="currentColor" />
+      <path d="m8.4 12.2 2.2 2.3 5-5.2" stroke="white" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+    </FilledIcon>
+  )
+}
+
+export function LockIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <FilledIcon {...props}>
+      <rect x="5.2" y="10.2" width="13.6" height="9" rx="2.2" fill="currentColor" />
+      <path d="M8.5 10.2V8.3a3.5 3.5 0 1 1 7 0v1.9" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
+    </FilledIcon>
+  )
+}
+
+export function InfoIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <FilledIcon {...props}>
+      <circle cx="12" cy="12" r="9" fill="currentColor" opacity="0.92" />
+      <circle cx="12" cy="8" r="1.2" fill="white" />
+      <path d="M12 11v5" stroke="white" strokeWidth="1.9" strokeLinecap="round" />
+    </FilledIcon>
+  )
+}
+
 export function UserIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <FilledIcon {...props}>

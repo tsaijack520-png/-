@@ -1,11 +1,28 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import {
+  aiHighlights,
   creatorUploads as defaultCreatorUploads,
   creatorUploadsStorageKey,
+  mockOrders,
   mockSessionStorageKey,
+  profilePlaylistAllItems,
 } from '../data/mockData'
-import type { CreatorUpload, MockUser, UserRole } from '../types/app'
+import type {
+  AIPackItem,
+  ContentDetailData,
+  CreatorUpload,
+  MockUser,
+  OrderItem,
+  PlaylistItem,
+  UserRole,
+  VipPlan,
+} from '../types/app'
+
+const orderStorageKey = 'earbian_orders'
+const playlistStorageKey = 'earbian_playlist'
+const unlockedContentStorageKey = 'earbian_unlocked_contents'
+const aiMinutesStorageKey = 'earbian_ai_minutes'
 
 function getStorage() {
   if (typeof window === 'undefined') {
@@ -19,56 +36,87 @@ function getStorage() {
   }
 }
 
-function readMockSession() {
+function readJson<T>(key: string, fallback: T) {
   const storage = getStorage()
 
   if (!storage) {
-    return null
+    return fallback
   }
 
-  const rawValue = storage.getItem(mockSessionStorageKey)
+  const rawValue = storage.getItem(key)
 
   if (!rawValue) {
-    return null
+    return fallback
   }
 
   try {
-    return JSON.parse(rawValue) as MockUser
+    return JSON.parse(rawValue) as T
   } catch {
-    storage.removeItem(mockSessionStorageKey)
-    return null
+    storage.removeItem(key)
+    return fallback
   }
 }
 
-function readCreatorUploads() {
+function readMockSession() {
+  return readJson<MockUser | null>(mockSessionStorageKey, null)
+}
+
+function writeJson(key: string, value: unknown) {
   const storage = getStorage()
 
   if (!storage) {
-    return defaultCreatorUploads
+    return
   }
 
-  const rawValue = storage.getItem(creatorUploadsStorageKey)
+  storage.setItem(key, JSON.stringify(value))
+}
 
-  if (!rawValue) {
-    return defaultCreatorUploads
-  }
+function formatNow() {
+  const formatter = new Intl.DateTimeFormat('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
 
-  try {
-    return JSON.parse(rawValue) as CreatorUpload[]
-  } catch {
-    storage.removeItem(creatorUploadsStorageKey)
-    return defaultCreatorUploads
+  return formatter.format(new Date()).replace(/\//g, '-').replace(',', '')
+}
+
+function extractNumber(value?: string) {
+  const matched = value?.match(/(\d+)/)
+  return matched ? Number(matched[1]) : 0
+}
+
+function buildPlaylistItem(detail: ContentDetailData): PlaylistItem {
+  return {
+    id: detail.id,
+    title: detail.title,
+    subtitle: `${detail.creator} · ${detail.status}`,
+    tone: detail.tone,
+    badge: detail.status.includes('会员') ? 'VIP' : '已加入',
+    badgeTone: detail.status.includes('会员') ? 'vip' : 'default',
+    to: `/content/${detail.id}`,
   }
 }
 
 export function useMockSession() {
   const [user, setUser] = useState<MockUser | null>(() => readMockSession())
-  const [creatorUploads, setCreatorUploads] = useState<CreatorUpload[]>(() => readCreatorUploads())
+  const [creatorUploads, setCreatorUploads] = useState<CreatorUpload[]>(() => readJson(creatorUploadsStorageKey, defaultCreatorUploads))
+  const [orders, setOrders] = useState<OrderItem[]>(() => readJson(orderStorageKey, mockOrders))
+  const [playlistItems, setPlaylistItems] = useState<PlaylistItem[]>(() => readJson(playlistStorageKey, profilePlaylistAllItems))
+  const [unlockedContentIds, setUnlockedContentIds] = useState<string[]>(() => readJson(unlockedContentStorageKey, []))
+  const [aiMinutes, setAiMinutes] = useState<number>(() => readJson(aiMinutesStorageKey, aiHighlights.remainingMinutes))
 
   useEffect(() => {
     const handleStorageChange = () => {
       setUser(readMockSession())
-      setCreatorUploads(readCreatorUploads())
+      setCreatorUploads(readJson(creatorUploadsStorageKey, defaultCreatorUploads))
+      setOrders(readJson(orderStorageKey, mockOrders))
+      setPlaylistItems(readJson(playlistStorageKey, profilePlaylistAllItems))
+      setUnlockedContentIds(readJson(unlockedContentStorageKey, []))
+      setAiMinutes(readJson(aiMinutesStorageKey, aiHighlights.remainingMinutes))
     }
 
     window.addEventListener('storage', handleStorageChange)
@@ -78,33 +126,50 @@ export function useMockSession() {
     }
   }, [])
 
-  const login = useCallback((nextUser: MockUser) => {
+  const syncUser = useCallback((nextUser: MockUser | null) => {
     const storage = getStorage()
 
     if (storage) {
-      storage.setItem(mockSessionStorageKey, JSON.stringify(nextUser))
+      if (nextUser) {
+        storage.setItem(mockSessionStorageKey, JSON.stringify(nextUser))
+      } else {
+        storage.removeItem(mockSessionStorageKey)
+      }
     }
 
     setUser(nextUser)
   }, [])
 
-  const logout = useCallback(() => {
-    const storage = getStorage()
-
-    if (storage) {
-      storage.removeItem(mockSessionStorageKey)
-    }
-
-    setUser(null)
+  const syncOrders = useCallback((nextOrders: OrderItem[]) => {
+    writeJson(orderStorageKey, nextOrders)
+    setOrders(nextOrders)
   }, [])
 
+  const syncPlaylistItems = useCallback((nextPlaylistItems: PlaylistItem[]) => {
+    writeJson(playlistStorageKey, nextPlaylistItems)
+    setPlaylistItems(nextPlaylistItems)
+  }, [])
+
+  const syncUnlockedContentIds = useCallback((nextUnlockedContentIds: string[]) => {
+    writeJson(unlockedContentStorageKey, nextUnlockedContentIds)
+    setUnlockedContentIds(nextUnlockedContentIds)
+  }, [])
+
+  const syncAiMinutes = useCallback((nextAiMinutes: number) => {
+    writeJson(aiMinutesStorageKey, nextAiMinutes)
+    setAiMinutes(nextAiMinutes)
+  }, [])
+
+  const login = useCallback((nextUser: MockUser) => {
+    syncUser(nextUser)
+  }, [syncUser])
+
+  const logout = useCallback(() => {
+    syncUser(null)
+  }, [syncUser])
+
   const saveCreatorUploads = useCallback((nextUploads: CreatorUpload[]) => {
-    const storage = getStorage()
-
-    if (storage) {
-      storage.setItem(creatorUploadsStorageKey, JSON.stringify(nextUploads))
-    }
-
+    writeJson(creatorUploadsStorageKey, nextUploads)
     setCreatorUploads(nextUploads)
   }, [])
 
@@ -130,30 +195,186 @@ export function useMockSession() {
         return
       }
 
-      const nextUser: MockUser = {
+      syncUser({
         ...user,
         role,
-      }
-
-      const storage = getStorage()
-
-      if (storage) {
-        storage.setItem(mockSessionStorageKey, JSON.stringify(nextUser))
-      }
-
-      setUser(nextUser)
+      })
     },
-    [user],
+    [syncUser, user],
   )
+
+  const appendOrder = useCallback(
+    (order: Omit<OrderItem, 'id' | 'createdAt'>) => {
+      const nextOrder: OrderItem = {
+        ...order,
+        id: `order-${Date.now()}`,
+        createdAt: formatNow(),
+      }
+
+      syncOrders([nextOrder, ...orders])
+      return nextOrder
+    },
+    [orders, syncOrders],
+  )
+
+  const addPlaylistItem = useCallback(
+    (detail: ContentDetailData) => {
+      const exists = playlistItems.some((item) => item.id === detail.id)
+
+      if (exists) {
+        return 'exists' as const
+      }
+
+      syncPlaylistItems([buildPlaylistItem(detail), ...playlistItems])
+      return 'added' as const
+    },
+    [playlistItems, syncPlaylistItems],
+  )
+
+  const unlockContent = useCallback(
+    (detail: ContentDetailData) => {
+      if (!user) {
+        return { ok: false as const, reason: 'auth' as const }
+      }
+
+      if (unlockedContentIds.includes(detail.id) || user.vipStatus.subscriptionActive) {
+        return { ok: false as const, reason: 'already-unlocked' as const }
+      }
+
+      syncUnlockedContentIds([detail.id, ...unlockedContentIds])
+      appendOrder({
+        type: 'content',
+        title: `单集解锁：${detail.title}`,
+        amount: detail.unlockLabel.replace('单集解锁 ', ''),
+        status: '已完成',
+      })
+
+      return { ok: true as const }
+    },
+    [appendOrder, syncUnlockedContentIds, unlockedContentIds, user],
+  )
+
+  const purchaseVipPlan = useCallback(
+    (plan: VipPlan) => {
+      if (!user) {
+        return { ok: false as const, reason: 'auth' as const }
+      }
+
+      const bonusCredits = extractNumber(plan.bonus)
+      const nextUser: MockUser = {
+        ...user,
+        vipStatus: {
+          subscriptionActive: true,
+          expiresAt: plan.id.includes('yearly') ? '2027-04-18' : '2026-05-18',
+          creditBalance: user.vipStatus.creditBalance + bonusCredits,
+        },
+      }
+
+      syncUser(nextUser)
+      appendOrder({
+        type: 'subscription',
+        title: plan.title,
+        amount: plan.price,
+        status: '已完成',
+      })
+
+      return { ok: true as const }
+    },
+    [appendOrder, syncUser, user],
+  )
+
+  const purchaseCreditPack = useCallback(
+    (plan: VipPlan) => {
+      if (!user) {
+        return { ok: false as const, reason: 'auth' as const }
+      }
+
+      const nextUser: MockUser = {
+        ...user,
+        vipStatus: {
+          ...user.vipStatus,
+          creditBalance: user.vipStatus.creditBalance + extractNumber(plan.bonus),
+        },
+      }
+
+      syncUser(nextUser)
+      appendOrder({
+        type: 'credit',
+        title: plan.title,
+        amount: plan.price,
+        status: '已完成',
+      })
+
+      return { ok: true as const }
+    },
+    [appendOrder, syncUser, user],
+  )
+
+  const consumeAiMinutes = useCallback(
+    (minutes: number) => {
+      if (minutes <= 0) {
+        return aiMinutes
+      }
+
+      const nextAiMinutes = Math.max(0, aiMinutes - minutes)
+      syncAiMinutes(nextAiMinutes)
+      return nextAiMinutes
+    },
+    [aiMinutes, syncAiMinutes],
+  )
+
+  const purchaseAiPack = useCallback(
+    (pack: AIPackItem) => {
+      if (!user) {
+        return { ok: false as const, reason: 'auth' as const }
+      }
+
+      const nextAiMinutes = aiMinutes + pack.minutes + extractNumber(pack.bonus)
+      syncAiMinutes(nextAiMinutes)
+      appendOrder({
+        type: 'ai',
+        title: pack.title,
+        amount: pack.price,
+        status: '已完成',
+      })
+
+      return { ok: true as const, nextAiMinutes }
+    },
+    [aiMinutes, appendOrder, syncAiMinutes, user],
+  )
+
+  const hasUnlockedContent = useCallback(
+    (contentId: string) => unlockedContentIds.includes(contentId) || Boolean(user?.vipStatus.subscriptionActive),
+    [unlockedContentIds, user?.vipStatus.subscriptionActive],
+  )
+
+  const profileSummary = useMemo(() => {
+    return {
+      purchasedCount: orders.filter((order) => order.type === 'content' || order.type === 'subscription').length,
+      playlistCount: playlistItems.length,
+      aiMinutes,
+    }
+  }, [aiMinutes, orders, playlistItems.length])
 
   return {
     user,
     creatorUploads,
+    orders,
+    playlistItems,
+    aiMinutes,
+    profileSummary,
     isAuthenticated: Boolean(user),
     isCreator: user?.role === 'creator',
     login,
     logout,
     addCreatorUpload,
     switchRole,
+    addPlaylistItem,
+    hasUnlockedContent,
+    unlockContent,
+    purchaseVipPlan,
+    purchaseCreditPack,
+    purchaseAiPack,
+    consumeAiMinutes,
   }
 }

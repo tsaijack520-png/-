@@ -115,6 +115,7 @@ export interface OrderItem {
   amount: string
   status: '已完成' | '处理中' | '已关闭'
   createdAt: string
+  detail?: string
 }
 
 export interface CreatorUpload {
