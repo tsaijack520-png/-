@@ -80,6 +80,7 @@ export function CategoryFilterPage() {
                 badgeTone={item.badgeTone}
                 tone={item.tone}
                 to={`/content/${item.id}`}
+                coverImageUrl={item.coverImageUrl}
               />
             ))}
           </div>

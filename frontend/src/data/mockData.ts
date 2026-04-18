@@ -798,7 +798,7 @@ export const contentDetails: Record<string, ContentDetailData> = {
     unlockLabel: '单集解锁 ¥9.9',
     seriesId: 's2',
     seriesTitle: '学妹来敲门',
-    seriesMeta: '同系列还有更多情绪承接向内容',
+    seriesMeta: '同系列还有更多情绪安抚向内容',
     tone: 'emerald',
   },
   'category-6': {
@@ -935,7 +935,7 @@ export const aiRoleCards: AIRoleItem[] = [
     subtitle: '高掌控感角色陪伴',
     relationship: '剧情感角色陪伴',
     intro: '角色扮演与情绪拉扯感，高回应、专属称呼，适合想要强剧情感的时候。',
-    scene: '角色扮演 / 情绪承接',
+    scene: '角色扮演 / 情绪安抚',
     traits: ['克制', '占有感', '高回应'],
     tone: 'rose',
   },
@@ -1055,4 +1055,14 @@ export const creatorStatusLabelMap: Record<CreatorUpload['status'], string> = {
   draft: '草稿',
   reviewing: '审核中',
   published: '已发布',
+}
+
+export function getSeriesEpisodeIds(seriesId: string): string[] {
+  if (!seriesId) {
+    return []
+  }
+
+  return Object.entries(contentDetails)
+    .filter(([, detail]) => detail.seriesId === seriesId)
+    .map(([id]) => id)
 }

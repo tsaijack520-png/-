@@ -1,6 +1,5 @@
 import { SubPageHeader } from '../components/SubPageHeader'
-import { EmptyState, StatusCard } from '../components/FeedbackBlocks'
-import { CheckCircleIcon } from '../components/Icons'
+import { EmptyState } from '../components/FeedbackBlocks'
 import { useMockSession } from '../hooks/useMockSession'
 
 const orderTypeLabelMap = {
@@ -16,13 +15,6 @@ export function ProfileOrdersPage() {
   return (
     <div className="page page--detail">
       <SubPageHeader title="订单记录" />
-
-      <StatusCard
-        eyebrow="订单说明"
-        title="统一展示轻量转化结果"
-        description="耳边当前是引流产品，所以这里只强调订单到账、权益同步与后续回访，不延展复杂售后和重交易流程。"
-        icon={<CheckCircleIcon className="status-card__glyph" />}
-      />
 
       <section className="page-section page-section--compact">
         {!isAuthenticated ? (

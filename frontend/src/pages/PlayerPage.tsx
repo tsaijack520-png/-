@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { StatusCard } from '../components/FeedbackBlocks'
 import { CheckCircleIcon, InfoIcon, LockIcon } from '../components/Icons'
 import { SubPageHeader } from '../components/SubPageHeader'
-import { playerStates } from '../data/mockData'
+import { contentDetails, getSeriesEpisodeIds, playerStates } from '../data/mockData'
 import { useMockSession } from '../hooks/useMockSession'
 
 const PREVIEW_SECONDS = 30
@@ -26,12 +26,22 @@ function formatDuration(seconds: number) {
 }
 
 export function PlayerPage() {
+  const navigate = useNavigate()
   const { addPlaylistItem, hasUnlockedContent } = useMockSession()
   const { contentId = '' } = useParams()
 
   const player = useMemo(() => {
     return playerStates[contentId] ?? playerStates.c1
   }, [contentId])
+
+  const detail = useMemo(() => {
+    return contentDetails[player.contentId] ?? contentDetails.c1
+  }, [player.contentId])
+
+  const episodes = useMemo(() => getSeriesEpisodeIds(detail.seriesId), [detail.seriesId])
+  const currentIndex = episodes.indexOf(player.contentId)
+  const prevEpisodeId = currentIndex > 0 ? episodes[currentIndex - 1] : null
+  const nextEpisodeId = currentIndex >= 0 && currentIndex < episodes.length - 1 ? episodes[currentIndex + 1] : null
 
   const totalSeconds = useMemo(() => parseDuration(player.durationLabel), [player.durationLabel])
   const initialSeconds = useMemo(() => {
@@ -92,24 +102,9 @@ export function PlayerPage() {
   const finished = unlocked && reachedEnd
 
   const handleAddPlaylist = useCallback(() => {
-    const result = addPlaylistItem({
-      id: player.contentId,
-      title: player.title,
-      eyebrow: player.meta,
-      creator: player.meta.split(' · ')[0] ?? '耳边',
-      duration: player.durationLabel,
-      status: '继续播放',
-      description: '已从播放器加入片单，便于下次回访继续进入。',
-      tags: ['播放器加入'],
-      unlockLabel: '单集解锁',
-      seriesId: player.contentId,
-      seriesTitle: player.title,
-      seriesMeta: player.meta,
-      tone: player.tone,
-    })
-
+    const result = addPlaylistItem(detail)
     setMessage(result === 'added' ? '已从播放器加入片单。' : '这条内容已经在你的片单里。')
-  }, [addPlaylistItem, player])
+  }, [addPlaylistItem, detail])
 
   const handleToggle = useCallback(() => {
     if (reachedEnd) {
@@ -120,23 +115,49 @@ export function PlayerPage() {
     setIsPlaying((value) => !value)
   }, [reachedEnd])
 
+  const handlePrev = useCallback(() => {
+    if (!prevEpisodeId) {
+      return
+    }
+    navigate(`/player/${prevEpisodeId}`)
+  }, [navigate, prevEpisodeId])
+
+  const handleNext = useCallback(() => {
+    if (!nextEpisodeId) {
+      return
+    }
+    navigate(`/player/${nextEpisodeId}`)
+  }, [navigate, nextEpisodeId])
+
   const progressPercent = previewLimit > 0 ? Math.min(100, (currentSeconds / previewLimit) * 100) : 0
+
+  const coverStyle = player.coverImageUrl
+    ? {
+        backgroundImage: `url(${player.coverImageUrl})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }
+    : undefined
+
+  const episodeLabel =
+    episodes.length > 1 && currentIndex >= 0 ? `第 ${currentIndex + 1} 集 / 共 ${episodes.length} 集` : null
 
   return (
     <div className="page page--detail">
       <SubPageHeader title="正在播放" />
 
       <section className={`detail-hero detail-hero--${player.tone}`}>
-        <div className="detail-hero__cover detail-hero__cover--large" />
+        <div className="detail-hero__cover detail-hero__cover--large" style={coverStyle} />
         <h1 className="detail-hero__title">{player.title}</h1>
         <div className="detail-hero__meta">{player.meta}</div>
+        {episodeLabel ? <div className="detail-hero__eyebrow">{episodeLabel}</div> : null}
       </section>
 
       {!unlocked ? (
         <StatusCard
           eyebrow="试听模式"
           title={`前 ${Math.min(PREVIEW_SECONDS, totalSeconds)} 秒免费试听`}
-          description="正式会员或单集解锁后即可听完整集；当前环境下试听结束会自动停在 30 秒。"
+          description="开通会员或单集解锁后可收听完整内容。"
           tone="warning"
           icon={<InfoIcon className="status-card__glyph" />}
           actions={
@@ -149,8 +170,8 @@ export function PlayerPage() {
 
       {message ? (
         <StatusCard
-          eyebrow="片单反馈"
-          title="已处理你的回访入口"
+          eyebrow="片单"
+          title="已更新你的片单"
           description={message}
           tone="success"
           icon={<CheckCircleIcon className="status-card__glyph" />}
@@ -161,7 +182,7 @@ export function PlayerPage() {
         <StatusCard
           eyebrow="试听已结束"
           title="继续收听需要解锁"
-          description="试听的前 30 秒已经播放完毕，解锁后可以继续从这里开始听整集。"
+          description="试听的前 30 秒已播放完，解锁后可继续听完整集。"
           tone="warning"
           icon={<LockIcon className="status-card__glyph" />}
           actions={
@@ -175,10 +196,17 @@ export function PlayerPage() {
       {finished ? (
         <StatusCard
           eyebrow="本集已听完"
-          title="可以选择回到开头或看看下一集"
-          description="收听记录已经保存，之后可以从首页“最近收听”或我的片单继续进入。"
+          title={nextEpisodeId ? '可以接着听下一集' : '可以从头再听或返回挑选其它内容'}
+          description="收听进度已自动保存，可从首页或我的片单继续进入。"
           tone="success"
           icon={<CheckCircleIcon className="status-card__glyph" />}
+          actions={
+            nextEpisodeId ? (
+              <button type="button" className="button button--primary" onClick={handleNext}>
+                播放下一集
+              </button>
+            ) : undefined
+          }
         />
       ) : null}
 
@@ -194,8 +222,9 @@ export function PlayerPage() {
           <button
             type="button"
             className="mini-button"
-            disabled
-            title="当前演示仅保留当前集，切集入口将在后续版本打开"
+            disabled={!prevEpisodeId}
+            onClick={handlePrev}
+            title={prevEpisodeId ? '播放上一集' : '已经是第一集'}
           >
             上一集
           </button>
@@ -205,8 +234,9 @@ export function PlayerPage() {
           <button
             type="button"
             className="mini-button"
-            disabled
-            title="当前演示仅保留当前集，切集入口将在后续版本打开"
+            disabled={!nextEpisodeId}
+            onClick={handleNext}
+            title={nextEpisodeId ? '播放下一集' : '已经是最新一集'}
           >
             下一集
           </button>
@@ -215,8 +245,8 @@ export function PlayerPage() {
 
       <section className="info-card">
         <div className="info-card__label">播放信息</div>
-        <div className="info-card__value info-card__value--sm">继续收听进度已保存</div>
-        <p className="info-card__text">退出后会在首页和“我的”里展示最近收听，回访时可直接继续播放。</p>
+        <div className="info-card__value info-card__value--sm">收听进度已保存</div>
+        <p className="info-card__text">退出后可在首页和"我的"里找到最近收听，直接续播。</p>
       </section>
 
       <section className="detail-actions">

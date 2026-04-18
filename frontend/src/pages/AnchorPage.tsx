@@ -25,7 +25,18 @@ export function AnchorPage() {
       <SubPageHeader title="主播主页" />
 
       <section className={`detail-hero detail-hero--${anchor.tone}`}>
-        <div className="detail-hero__cover" />
+        <div
+          className="detail-hero__cover"
+          style={
+            anchor.coverImageUrl
+              ? {
+                  backgroundImage: `url(${anchor.coverImageUrl})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                }
+              : undefined
+          }
+        />
         <div className="detail-hero__eyebrow">{anchor.followerLabel} · {anchor.scheduleLabel}</div>
         <h1 className="detail-hero__title">{anchor.name}</h1>
         <div className="detail-hero__meta">{anchor.tagline}</div>
@@ -62,6 +73,7 @@ export function AnchorPage() {
               badgeTone={item.badgeTone}
               tone={item.tone}
               to={`/content/${item.id}`}
+              coverImageUrl={item.coverImageUrl}
             />
           ))}
         </div>

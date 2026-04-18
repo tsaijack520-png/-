@@ -75,6 +75,18 @@ interface PosterCardProps {
   badgeTone?: 'default' | 'vip'
   tone: SurfaceTone
   to?: string
+  coverImageUrl?: string
+}
+
+function buildCoverStyle(coverImageUrl?: string) {
+  if (!coverImageUrl) {
+    return undefined
+  }
+  return {
+    backgroundImage: `url(${coverImageUrl})`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+  } as const
 }
 
 export function PosterCard({
@@ -84,10 +96,11 @@ export function PosterCard({
   badgeTone = 'default',
   tone,
   to,
+  coverImageUrl,
 }: PosterCardProps) {
   const content = (
     <>
-      <div className="poster-card__cover" />
+      <div className="poster-card__cover" style={buildCoverStyle(coverImageUrl)} />
       <div className="poster-card__title">{title}</div>
       <div className="poster-card__meta">{meta}</div>
       {badge ? (
@@ -114,12 +127,13 @@ interface SeriesCardProps {
   meta: string
   tone: SurfaceTone
   to?: string
+  coverImageUrl?: string
 }
 
-export function SeriesCard({ title, meta, tone, to }: SeriesCardProps) {
+export function SeriesCard({ title, meta, tone, to, coverImageUrl }: SeriesCardProps) {
   const content = (
     <>
-      <div className="series-card__cover" />
+      <div className="series-card__cover" style={buildCoverStyle(coverImageUrl)} />
       <div className="series-card__body">
         <div className="series-card__title">{title}</div>
         <div className="series-card__meta">{meta}</div>
@@ -166,6 +180,7 @@ interface ListCardProps {
   badgeTone?: 'default' | 'vip'
   tone: SurfaceTone
   to?: string
+  coverImageUrl?: string
 }
 
 export function ListCard({
@@ -175,10 +190,11 @@ export function ListCard({
   badgeTone = 'default',
   tone,
   to,
+  coverImageUrl,
 }: ListCardProps) {
   const content = (
     <>
-      <div className="list-card__cover" />
+      <div className="list-card__cover" style={buildCoverStyle(coverImageUrl)} />
       <div className="list-card__body">
         <div className="list-card__title">{title}</div>
         <div className="list-card__meta">{meta}</div>

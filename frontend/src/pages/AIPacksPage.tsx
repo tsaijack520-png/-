@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
-import { AppleIcon, CheckCircleIcon } from '../components/Icons'
+import { CheckCircleIcon, WalletIcon } from '../components/Icons'
 import { StatusCard } from '../components/FeedbackBlocks'
 import { aiPacks } from '../data/mockData'
 import { useMockSession } from '../hooks/useMockSession'
@@ -41,16 +41,16 @@ export function AIPacksPage() {
       </section>
 
       <StatusCard
-        eyebrow="当前策略"
+        eyebrow="当前余量"
         title={`可用时长 ${aiMinutes} 分钟`}
-        description="这里采用 Apple 内购风格反馈：先承接转化意愿，再让用户理解时长到账与继续使用。"
-        icon={<AppleIcon className="status-card__glyph" />}
+        description="购买成功后时长立即到账，可回到对话页继续使用。"
+        icon={<WalletIcon className="status-card__glyph" />}
       />
 
       {lastPurchased ? (
         <StatusCard
           eyebrow="购买成功"
-          title="Apple 风格到账已完成"
+          title="时长已到账"
           description={lastPurchased}
           tone="success"
           icon={<CheckCircleIcon className="status-card__glyph" />}
@@ -75,17 +75,16 @@ export function AIPacksPage() {
             <p className="pack-card__description">{pack.description}</p>
             {pack.bonus ? <div className="pack-card__bonus">{pack.bonus}</div> : null}
             <button type="button" className="button button--primary button--block" onClick={() => handlePurchase(pack.id)}>
-              使用 Apple 风格购买
+              立即购买
             </button>
           </article>
         ))}
       </section>
 
       <StatusCard
-        eyebrow="到账结果"
+        eyebrow="说明"
         title="购买后立即生效"
-        description="成功后会把时长直接累计到当前账号，并在 AI 页面与订单记录中同步展示。"
-        tone="success"
+        description="时长会累计到当前账号，可在 AI 页面与订单记录中查看。"
         icon={<CheckCircleIcon className="status-card__glyph" />}
         actions={
           <>

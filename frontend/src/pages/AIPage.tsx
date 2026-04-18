@@ -30,9 +30,9 @@ export function AIPage() {
       </section>
 
       <StatusCard
-        eyebrow="当前可用时长"
+        eyebrow="可用时长"
         title={`${aiMinutes} 分钟`}
-        description="AI 陪伴先承担引流与回访，所以购买入口以轻量说明和即时到账为主，不做复杂结算打扰。"
+        description="每次对话按发送计时，时长不足可随时补充时长包。"
         icon={<WalletIcon className="status-card__glyph" />}
       />
 

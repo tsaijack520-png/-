@@ -45,6 +45,7 @@ export interface ContentItem {
   scene: string
   sortTags: SortTag[]
   tone: SurfaceTone
+  coverImageUrl?: string
 }
 
 export interface SeriesItem {
@@ -53,6 +54,7 @@ export interface SeriesItem {
   meta: string
   tone: SurfaceTone
   to?: string
+  coverImageUrl?: string
 }
 
 export interface VipStatus {
@@ -88,6 +90,7 @@ export interface PlaylistItem {
   badge?: string
   badgeTone?: 'default' | 'vip'
   to?: string
+  coverImageUrl?: string
 }
 
 export interface AssetEntry {
@@ -150,6 +153,8 @@ export interface ContentDetailData {
   seriesTitle: string
   seriesMeta: string
   tone: SurfaceTone
+  coverImageUrl?: string
+  audioUrl?: string
 }
 
 export interface PlayerStateData {
@@ -160,6 +165,8 @@ export interface PlayerStateData {
   durationLabel: string
   progressPercent: number
   tone: SurfaceTone
+  coverImageUrl?: string
+  audioUrl?: string
 }
 
 export interface AnchorProfile {
@@ -173,6 +180,7 @@ export interface AnchorProfile {
   tags: string[]
   tone: SurfaceTone
   featuredContentIds: string[]
+  coverImageUrl?: string
 }
 
 export interface HomeSectionMeta {

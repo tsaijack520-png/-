@@ -168,6 +168,16 @@ export function useMockSession() {
     syncUser(null)
   }, [syncUser])
 
+  const updateUser = useCallback(
+    (patch: Partial<MockUser>) => {
+      if (!user) {
+        return
+      }
+      syncUser({ ...user, ...patch })
+    },
+    [syncUser, user],
+  )
+
   const saveCreatorUploads = useCallback((nextUploads: CreatorUpload[]) => {
     writeJson(creatorUploadsStorageKey, nextUploads)
     setCreatorUploads(nextUploads)
@@ -367,6 +377,7 @@ export function useMockSession() {
     isCreator: user?.role === 'creator',
     login,
     logout,
+    updateUser,
     addCreatorUpload,
     switchRole,
     addPlaylistItem,

@@ -27,7 +27,7 @@ export function ContentDetailPage() {
 
   function handleAddPlaylist() {
     const result = addPlaylistItem(detail)
-    setPlaylistMessage(result === 'added' ? '已加入片单，回访时可继续找到这条内容。' : '这条内容已经在你的片单里了。')
+    setPlaylistMessage(result === 'added' ? '已加入片单，可在"我的"里继续找到。' : '这条内容已经在你的片单里了。')
   }
 
   function handleUnlock() {
@@ -61,7 +61,18 @@ export function ContentDetailPage() {
       <SubPageHeader title="内容详情" />
 
       <section className={`detail-hero detail-hero--${detail.tone}`}>
-        <div className="detail-hero__cover" />
+        <div
+          className="detail-hero__cover"
+          style={
+            detail.coverImageUrl
+              ? {
+                  backgroundImage: `url(${detail.coverImageUrl})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                }
+              : undefined
+          }
+        />
         <div className="detail-hero__eyebrow">{detail.eyebrow}</div>
         <h1 className="detail-hero__title">{detail.title}</h1>
         <div className="detail-hero__meta">
@@ -79,19 +90,18 @@ export function ContentDetailPage() {
 
       {paymentState === 'pending' ? (
         <StatusCard
-          eyebrow="Apple 内购风格演示"
+          eyebrow="支付中"
           title="正在确认购买结果"
-          description="当前版本先验证引流与转化体验，不接真实支付；这里展示的是正式上线前的支付反馈节奏。"
-          tone="warning"
+          description="请稍候，支付完成后权益会立即生效。"
           icon={<AppleIcon className="status-card__glyph" />}
         />
       ) : null}
 
       {paymentState === 'success' ? (
         <StatusCard
-          eyebrow="已完成解锁"
-          title="内容权益已到账"
-          description={`已为你保留《${detail.title}》的收听权限，后续可从首页、片单或订单记录继续进入。`}
+          eyebrow="解锁成功"
+          title="可以开始收听了"
+          description={`《${detail.title}》已加入你的已购内容，可在片单和订单记录中查看。`}
           tone="success"
           icon={<CheckCircleIcon className="status-card__glyph" />}
           actions={
@@ -111,7 +121,7 @@ export function ContentDetailPage() {
         <StatusCard
           eyebrow="无需重复购买"
           title="这条内容已在你的权益内"
-          description={user?.vipStatus.subscriptionActive ? '你当前已开通会员，可直接继续收听。' : '你之前已经解锁过这条内容，直接进入播放即可。'}
+          description={user?.vipStatus.subscriptionActive ? '你当前已开通会员，可直接收听。' : '你之前已经解锁过这条内容，可直接进入播放。'}
           icon={<LockIcon className="status-card__glyph" />}
           actions={
             <Link to={`/player/${detail.id}`} className="button button--secondary">
@@ -123,8 +133,8 @@ export function ContentDetailPage() {
 
       {playlistMessage ? (
         <StatusCard
-          eyebrow="片单状态"
-          title="已处理你的片单操作"
+          eyebrow="片单"
+          title="已更新你的片单"
           description={playlistMessage}
           icon={<CheckCircleIcon className="status-card__glyph" />}
           actions={
@@ -147,12 +157,6 @@ export function ContentDetailPage() {
         </button>
       </section>
 
-      <section className="info-card detail-info-card">
-        <div className="info-card__label">当前交易策略</div>
-        <div className="info-card__value info-card__value--sm">先做轻量转化，不做重支付心智</div>
-        <p className="info-card__text">耳边现阶段是引流产品，付费路径以 Apple 内购风格演示为主，重点验证点击意愿、权益理解与后续回访。</p>
-      </section>
-
       <section className="page-section page-section--compact">
         <SectionHeader title="所属系列" moreTo="/home/section/series" />
         <SeriesCard
@@ -160,6 +164,7 @@ export function ContentDetailPage() {
           meta={detail.seriesMeta}
           tone={detail.tone}
           to="/home/section/series"
+          coverImageUrl={detail.coverImageUrl}
         />
       </section>
 

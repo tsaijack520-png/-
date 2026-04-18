@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
-import { AppleIcon, CheckCircleIcon, WalletIcon } from '../components/Icons'
+import { CheckCircleIcon, WalletIcon } from '../components/Icons'
 import { StatusCard } from '../components/FeedbackBlocks'
 import { SubPageHeader } from '../components/SubPageHeader'
 import { useMockSession } from '../hooks/useMockSession'
@@ -49,14 +49,14 @@ export function ProfileVipPage() {
 
   const statusDescription = useMemo(() => {
     if (!isAuthenticated) {
-      return '登录后即可查看会员状态、点数余额与 Apple 风格的购买结果。'
+      return '登录后可查看会员状态、点数余额与订阅权益。'
     }
 
     if (subscriptionActive) {
-      return `当前会员有效期至 ${expiresAt ?? '待同步'}，账户内剩余 ${creditBalance} 点。`
+      return `会员有效期至 ${expiresAt ?? '待同步'}，账户内剩余 ${creditBalance} 点。`
     }
 
-    return `当前未开通会员，账户内剩余 ${creditBalance} 点，可先体验轻量转化路径。`
+    return `当前未开通会员，账户内剩余 ${creditBalance} 点。`
   }, [creditBalance, expiresAt, isAuthenticated, subscriptionActive])
 
   return (
@@ -68,14 +68,6 @@ export function ProfileVipPage() {
         title={subscriptionActive ? '已开通订阅会员' : '未开通订阅会员'}
         description={statusDescription}
         icon={<WalletIcon className="status-card__glyph" />}
-      />
-
-      <StatusCard
-        eyebrow="本期交易策略"
-        title="先验证转化，不接真实支付"
-        description="当前会员与点数购买采用 Apple 内购风格演示，重点是让用户理解权益价值与到账反馈，不强化复杂支付心智。"
-        tone="warning"
-        icon={<AppleIcon className="status-card__glyph" />}
       />
 
       <section className="page-section page-section--compact">
@@ -95,7 +87,7 @@ export function ProfileVipPage() {
               <p className="pack-card__description">{plan.desc}</p>
               {plan.bonus ? <div className="pack-card__bonus">{plan.bonus}</div> : null}
               <button type="button" className="button button--primary button--block" onClick={() => handlePurchaseVip(plan)}>
-                {subscriptionActive ? '继续续费' : '使用 Apple 风格开通'}
+                {subscriptionActive ? '续费' : '立即开通'}
               </button>
             </article>
           ))}
@@ -118,7 +110,7 @@ export function ProfileVipPage() {
               </div>
               <p className="pack-card__description">{plan.desc}</p>
               <button type="button" className="button button--secondary button--block" onClick={() => handlePurchaseCredit(plan)}>
-                使用 Apple 风格充值
+                立即充值
               </button>
             </article>
           ))}
@@ -128,7 +120,7 @@ export function ProfileVipPage() {
       {purchaseFeedback ? (
         <StatusCard
           eyebrow="购买成功"
-          title="Apple 风格到账已完成"
+          title="权益已到账"
           description={purchaseFeedback}
           tone="success"
           icon={<CheckCircleIcon className="status-card__glyph" />}
@@ -138,15 +130,7 @@ export function ProfileVipPage() {
             </Link>
           }
         />
-      ) : (
-        <StatusCard
-          eyebrow="到账表现"
-          title="购买成功后立即同步权益"
-          description="会员状态、点数余额与订单记录都会立即刷新，便于继续浏览内容详情或 AI 陪伴页面。"
-          tone="success"
-          icon={<CheckCircleIcon className="status-card__glyph" />}
-        />
-      )}
+      ) : null}
     </div>
   )
 }

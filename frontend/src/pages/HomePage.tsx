@@ -94,6 +94,7 @@ export function HomePage() {
               badgeTone={item.badgeTone}
               tone={item.tone}
               to={`/content/${item.id}`}
+              coverImageUrl={item.coverImageUrl}
             />
           ))}
         </div>
@@ -109,6 +110,7 @@ export function HomePage() {
               meta={item.meta}
               tone={item.tone}
               to={item.to}
+              coverImageUrl={item.coverImageUrl}
             />
           ))}
         </div>

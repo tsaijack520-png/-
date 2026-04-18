@@ -159,14 +159,14 @@ export function AIChatPage() {
       </section>
 
       <StatusCard
-        eyebrow="当前会话时长"
+        eyebrow="剩余时长"
         title={`${aiMinutes} 分钟可用`}
         description={
           outOfMinutes
-            ? 'AI 时长已经用完，购买一份时长包就能继续当前会话，之前的记忆依旧保留。'
+            ? '时长已用完，补充时长包后即可继续当前会话，角色记忆仍然保留。'
             : lowMinutesWarning
-              ? '剩余时长不多了，再聊几轮就要消耗完，可以顺手看看时长包避免被打断。'
-              : 'AI 会话当前优先服务陪伴体验与后续转化，每次发送会消耗 1 分钟演示用时长。'
+              ? '剩余时长不多了，建议先补充时长包，避免对话中途被中断。'
+              : '每次发送会消耗 1 分钟，时长不足可在时长包页面补充。'
         }
         tone={outOfMinutes ? 'warning' : lowMinutesWarning ? 'warning' : 'default'}
         icon={<WalletIcon className="status-card__glyph" />}

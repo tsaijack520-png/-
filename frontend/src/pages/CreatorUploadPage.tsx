@@ -43,10 +43,10 @@ export function CreatorUploadPage() {
       {isPreview ? (
         <section className="creator-preview-banner">
           <div>
-            <div className="info-card__label">当前为预览模式</div>
-            <div className="info-card__value info-card__value--sm">切换为创作者后才可正式发布内容</div>
+            <div className="info-card__label">听众视角</div>
+            <div className="info-card__value info-card__value--sm">切换为创作者后可发布内容</div>
           </div>
-          <p className="info-card__text">上传页已经做好，你现在可以先体验流程和信息结构；真正提交草稿时，先去“账号与设置”切换为创作者身份。</p>
+          <p className="info-card__text">在"账号与设置"中切换为创作者身份，即可开始上传并提交草稿。</p>
           <Link to="/me/settings" className="button button--secondary">
             去切换身份
           </Link>
@@ -56,28 +56,21 @@ export function CreatorUploadPage() {
       {submitted ? (
         <StatusCard
           eyebrow="草稿已提交"
-          title="已回到引流阶段的最小创作者闭环"
-          description="这一步先证明创作者能顺利上传并看到结果，收益提现等更重的结算能力继续后置。"
+          title="可回到工作台继续完善"
+          description="内容会进入审核流程，通过后会在首页和分类中展示。"
           tone="success"
           icon={<CheckCircleIcon className="status-card__glyph" />}
         />
       ) : (
         <StatusCard
-          eyebrow="本期目标"
-          title="先把上传和审核预期讲清楚"
-          description="当前先承接内容发布意愿，让创作者看见草稿、审核和收益表现，不开放提现与结算。"
+          eyebrow="发布说明"
+          title="草稿提交后进入审核"
+          description="可补充标题、简介、角色与场景标签，提交后在工作台查看审核进度。"
           icon={<InfoIcon className="status-card__glyph" />}
         />
       )}
 
       <form className="auth-form creator-form" onSubmit={handleSubmit}>
-        <section className="creator-upload-intro">
-          <div>
-            <div className="info-card__label">发布流程</div>
-            <div className="info-card__value info-card__value--sm">先提交草稿，再回工作台继续完善</div>
-          </div>
-          <p className="info-card__text">当前已包含标题、简介、角色、场景与文件占位，后续可继续补封面、定价与上架信息。</p>
-        </section>
 
         <label className="auth-field auth-field--line">
           <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="请输入内容标题" disabled={isPreview} />
@@ -114,14 +107,14 @@ export function CreatorUploadPage() {
         <section className="creator-upload-card creator-upload-card--placeholder">
           <div className="creator-upload-card__title">音频与封面</div>
           <div className="creator-upload-card__meta">
-            {fileNotice || '上传音频文件与封面图后，将以草稿状态回到工作台继续编辑与提交审核。'}
+            {fileNotice || '上传音频文件与封面图后，可在工作台继续编辑并提交审核。'}
           </div>
           <div className="creator-upload-card__actions">
             <button
               type="button"
               className="button button--secondary"
               disabled={isPreview}
-              onClick={() => setFileNotice('演示阶段仅保存文本草稿，音频文件入口会在正式上线时开放。')}
+              onClick={() => setFileNotice('音频文件上传功能即将上线。')}
             >
               选择音频文件
             </button>
@@ -129,7 +122,7 @@ export function CreatorUploadPage() {
               type="button"
               className="button button--ghost"
               disabled={isPreview}
-              onClick={() => setFileNotice('封面图上传会与审核流程串联，目前以系统默认封面代替。')}
+              onClick={() => setFileNotice('封面图上传功能即将上线，当前使用系统默认封面。')}
             >
               上传封面图
             </button>
@@ -137,7 +130,7 @@ export function CreatorUploadPage() {
         </section>
 
         <button type="submit" className="button button--primary button--block">
-          {isPreview ? '去切换为创作者' : '提交为草稿'}
+          {isPreview ? '去切换为创作者' : '提交草稿'}
         </button>
       </form>
     </div>

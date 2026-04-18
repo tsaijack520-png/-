@@ -1,83 +1,83 @@
 import { useMemo } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 
-import { AppleIcon, EarBrandMark } from '../components/Icons'
+import { EarBrandMark } from '../components/Icons'
 import { SubPageHeader } from '../components/SubPageHeader'
 
 const pageContent = {
   privacy: {
     title: '隐私政策',
-    eyebrow: '正式环境上线前必备',
-    summary: '耳边当前以体验与引流为主，仅保留最少必要信息用于账号识别、订单展示与体验记录。',
+    eyebrow: '个人信息保护',
+    summary: '耳边重视并严格保护用户的个人信息。本政策说明我们收集哪些信息、如何使用，以及你对这些信息所拥有的权利。',
     sections: [
       {
-        heading: '我们会记录什么',
-        body: '仅记录账号基础信息、体验记录、已购状态与设备侧本地缓存，用于保证试听、片单和会员体验连续。',
+        heading: '我们收集的信息',
+        body: '账号基础信息（昵称、头像、登录方式）、收听与购买记录、设备本地的偏好设置。我们不会收集与服务无关的隐私信息。',
       },
       {
-        heading: '为什么记录',
-        body: '用于登录后继续收听、展示订单结果、保留创作者草稿与减少重复操作。',
+        heading: '信息的使用方式',
+        body: '用于保持登录状态、同步片单与会员权益、展示收听历史与订单记录、改善内容推荐。未经你同意，我们不会将信息提供给第三方。',
       },
       {
-        heading: '当前阶段说明',
-        body: '本版本仍是上线前体验稿，支付与提现能力尚未正式开通，相关数据仅作流程演示。',
+        heading: '你的权利',
+        body: '你可以在"账号与设置"中修改账号信息，也可以申请注销账号；注销后我们会在合理期限内删除你的个人数据。',
       },
     ],
   },
   terms: {
     title: '用户协议',
-    eyebrow: '正式环境上线前必备',
-    summary: '耳边提供声音陪伴与内容发现服务，当前版本以内容体验、转化引导和创作者入驻展示为主。',
+    eyebrow: '服务使用条款',
+    summary: '欢迎使用耳边。请在使用本应用前阅读本协议，使用即表示你同意以下条款。',
     sections: [
       {
-        heading: '服务说明',
-        body: '你可以浏览公开内容、体验试听、收藏片单、查看会员与 AI 时长方案，并在后续开放时完成正式购买。',
+        heading: '服务内容',
+        body: '耳边提供声音陪伴、内容发现与 AI 陪伴服务。你可以浏览公开内容、试听、收藏片单，并选择开通会员或解锁单集。',
       },
       {
         heading: '账号与内容',
-        body: '请勿冒用他人身份发布内容，也不要将平台内素材用于未授权传播。创作者内容仍需经过审核后再展示。',
+        body: '请妥善保管账号信息。在发布与互动时，请遵守法律法规与社区准则，不得冒用他人身份或传播未授权内容。',
       },
       {
-        heading: '交易说明',
-        body: '当前版本展示的是 Apple 内购风格体验流程，不构成真实扣费承诺，正式支付能力以实际上线版本为准。',
+        heading: '付费说明',
+        body: '会员订阅、点数与 AI 时长包均在订单记录中同步展示。订阅类服务可在系统设置中管理自动续费。',
       },
     ],
   },
   help: {
     title: '帮助与反馈',
-    eyebrow: '体验问题统一入口',
-    summary: '如果你在试听、登录、片单或会员展示中遇到问题，可以先通过这里找到对应说明。',
+    eyebrow: '常见问题与支持',
+    summary: '遇到问题可以先在这里查看说明，也欢迎通过反馈入口联系我们。',
     sections: [
       {
         heading: '常见问题',
-        body: '登录后仍未看到会员权益、片单未同步、AI 时长未更新时，优先检查是否仍在当前设备与同一账号下体验。',
+        body: '无法登录时请检查网络连接；权益未同步时可尝试退出重新登录；AI 时长、片单与订单均以当前登录账号为准。',
       },
       {
-        heading: '反馈通道',
-        body: '当前建议通过产品运营或内测群统一收集问题，正式环境可补充客服邮箱、工单或站内反馈。',
+        heading: '联系我们',
+        body: '如需进一步协助，可通过应用内反馈入口留言，或发送邮件至 support@erbian.fm，我们会在工作日尽快回复。',
       },
       {
-        heading: '本期限制',
-        body: '提现与正式结算暂未开放，创作者侧当前仅展示收益预估与内容管理结构。',
+        heading: '内容版权',
+        body: '如认为本平台内容侵犯了你的合法权益，可通过反馈入口提交版权投诉，并附上相应证明材料。',
       },
     ],
   },
   about: {
     title: '关于耳边',
-    eyebrow: '产品定位说明',
-    summary: '耳边当前定位是声音陪伴方向的引流产品，重点是让用户快速进入内容氛围、建立偏好与后续转化意愿。',
+    eyebrow: '产品介绍',
+    summary: '耳边是一款声音陪伴应用，为用户提供睡前、通勤与情绪调节等场景下的陪伴内容与 AI 对话。',
     sections: [
       {
-        heading: '产品目标',
-        body: '先用首页、分类、AI 陪伴和主播内容建立第一印象，再通过轻量权益与会员方案承接后续转化。',
+        heading: '产品特色',
+        body: '精选女友音、男友音、学妹音等多种声线内容，覆盖睡前陪伴、早安叫醒、角色扮演、情景剧等场景。',
       },
       {
-        heading: '为什么先做轻交易',
-        body: '本阶段优先验证内容吸引力、回访与留资效率，因此支付与提现只保留必要展示，不做重交易心智。',
+        heading: 'AI 陪伴',
+        body: '支持与不同角色进行实时语音陪伴对话，角色会记住你的偏好与会话内容，带来连续的陪伴体验。',
       },
       {
-        heading: '联系我们',
-        body: '正式环境可在这里补充品牌介绍、商务合作、创作者入驻与客服联系方式。',
+        heading: '商务合作',
+        body: '若有商务合作、创作者入驻或品牌联合意向，可发送邮件至 hello@erbian.fm 联系我们。',
       },
     ],
   },
@@ -112,25 +112,6 @@ export function StaticPage() {
             <p className="info-card__text">{section.body}</p>
           </article>
         ))}
-      </section>
-
-      <section className="info-card static-page-footer">
-        <div className="static-page-footer__head">
-          <AppleIcon className="static-page-footer__icon" />
-          <div>
-            <div className="info-card__label">当前阶段</div>
-            <div className="info-card__value info-card__value--sm">以体验闭环与转化引导为主</div>
-          </div>
-        </div>
-        <p className="info-card__text">支付采用 Apple 内购风格演示路径，提现与正式结算入口暂时隐藏，避免形成不可用死路。</p>
-        <div className="static-page-footer__actions">
-          <Link to="/me/settings" className="button button--secondary">
-            返回设置
-          </Link>
-          <Link to="/" className="button button--ghost">
-            回到首页
-          </Link>
-        </div>
       </section>
     </div>
   )
