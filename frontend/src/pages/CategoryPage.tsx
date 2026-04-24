@@ -2,11 +2,12 @@ import { useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 import {
-  categoryContents,
   roleFilters,
   sceneFilters,
   sortFilters,
 } from '../data/mockData'
+import { loadCategoryContents } from '../data/source'
+import { useAppData } from '../hooks/useAppData'
 import { FilterChip, ListCard } from '../components/ContentBlocks'
 import { EmptyState } from '../components/FeedbackBlocks'
 import { SectionHeader } from '../components/SectionHeader'
@@ -17,6 +18,9 @@ export function CategoryPage() {
   const roleParam = searchParams.get('role')
   const sceneParam = searchParams.get('scene')
   const sortParam = searchParams.get('sort')
+
+  const { data } = useAppData(loadCategoryContents)
+  const contents = data ?? []
 
   const activeRole = roleFilters.includes(roleParam as (typeof roleFilters)[number])
     ? (roleParam as (typeof roleFilters)[number])
@@ -29,14 +33,13 @@ export function CategoryPage() {
     : '最热'
 
   const filteredContents = useMemo(() => {
-    return categoryContents.filter((item) => {
+    return contents.filter((item) => {
       const roleMatch = item.role === activeRole
       const sceneMatch = item.scene === activeScene
       const sortMatch = item.sortTags.includes(activeSort)
-
       return roleMatch && sceneMatch && sortMatch
     })
-  }, [activeRole, activeScene, activeSort])
+  }, [contents, activeRole, activeScene, activeSort])
 
   const hasMatches = filteredContents.length > 0
 

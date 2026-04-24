@@ -4,13 +4,18 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { FilterChip, ListCard } from '../components/ContentBlocks'
 import { EmptyState } from '../components/FeedbackBlocks'
 import { SectionHeader } from '../components/SectionHeader'
-import { categoryContents, categoryFilterMeta } from '../data/mockData'
+import { categoryFilterMeta } from '../data/mockData'
+import { loadCategoryContents } from '../data/source'
+import { useAppData } from '../hooks/useAppData'
 import { SubPageHeader } from '../components/SubPageHeader'
 
 export function CategoryFilterPage() {
   const navigate = useNavigate()
   const { filterType = 'role' } = useParams()
   const [searchParams] = useSearchParams()
+
+  const { data } = useAppData(loadCategoryContents)
+  const allContents = data ?? []
 
   const filter = useMemo(() => {
     return categoryFilterMeta[filterType as keyof typeof categoryFilterMeta] ?? categoryFilterMeta.role
@@ -22,7 +27,7 @@ export function CategoryFilterPage() {
     : filter.options[0]
 
   const previewContents = useMemo(() => {
-    return categoryContents.filter((item) => {
+    return allContents.filter((item) => {
       if (filter.id === 'role') {
         return item.role === selectedTag
       }
@@ -33,7 +38,7 @@ export function CategoryFilterPage() {
 
       return item.sortTags.includes(selectedTag as (typeof item.sortTags)[number])
     })
-  }, [filter.id, selectedTag])
+  }, [allContents, filter.id, selectedTag])
 
   function handleSelectTag(option: string) {
     navigate(`/category/filter/${filter.id}?${filter.id}=${encodeURIComponent(option)}`, { replace: true })

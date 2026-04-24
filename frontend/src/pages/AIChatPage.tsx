@@ -1,32 +1,24 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
+import { apiBaseUrl } from '../api/client'
 import { StatusCard } from '../components/FeedbackBlocks'
 import { InfoIcon, WalletIcon } from '../components/Icons'
 import { SubPageHeader } from '../components/SubPageHeader'
-import { aiChatSessions, aiRoleCards } from '../data/mockData'
+import { loadAIChat } from '../data/source'
+import { useAppData } from '../hooks/useAppData'
 import { useMockSession } from '../hooks/useMockSession'
-import type { AIMessageItem } from '../types/app'
+import type { AIChatSessionData, AIMessageItem, AIRoleItem } from '../types/app'
 
-const aiReplyPool: Record<string, string[]> = {
-  lanlan: [
-    '嗯，我听到了。你先深呼吸一下，不用急着说完。',
-    '今天是真的辛苦了，把耳机戴好，我陪你慢慢把今天放下。',
-    '没事的，我们不赶时间。想停一会儿就停一会儿。',
-    '我给你一段安静的呼吸节奏，吸气 4 秒，吐气 6 秒，跟我一起。',
-  ],
-  chenxi: [
-    '收到，先把今晚收个口，明天我会用最轻的方式把你叫起来。',
-    '我帮你把明天最重要的三件事记下，到时候我挨个提醒你。',
-    '先别焦虑，我们现在只需要做一件事：把睡觉这件事排第一。',
-    '醒来的第一句话我已经想好啦——"今天也只做你撑得住的事"。',
-  ],
-  jiuce: [
-    '你来晚了。不过没关系，现在到我这里，其他的事先放一边。',
-    '今晚不许再想那些让你烦的事，听见没？',
-    '来，先叫我一声，我再继续陪你把今晚过完。',
-    '我看你又忍了很久。没事，现在你只用负责听我说。',
-  ],
+const FALLBACK_REPLIES = [
+  '我在呢, 你继续说, 我会认真听。',
+  '收到了, 我陪你慢慢聊, 不着急。',
+  '嗯, 我看到你发来的话了, 现在我陪着你。',
+  '别急, 先把今天放下, 我在。',
+]
+
+function pickFallback(): string {
+  return FALLBACK_REPLIES[Math.floor(Math.random() * FALLBACK_REPLIES.length)]
 }
 
 function createMessage(speaker: AIMessageItem['speaker'], text: string): AIMessageItem {
@@ -37,37 +29,82 @@ function createMessage(speaker: AIMessageItem['speaker'], text: string): AIMessa
   }
 }
 
+function toApiMessages(messages: AIMessageItem[]): Array<{ role: 'user' | 'assistant'; content: string }> {
+  return messages.map((m) => ({
+    role: m.speaker === 'user' ? 'user' : 'assistant',
+    content: m.text,
+  }))
+}
+
+async function callAIChat(
+  history: AIMessageItem[],
+  role: AIRoleItem,
+  signal: AbortSignal,
+): Promise<string> {
+  const base = apiBaseUrl()
+  if (!base) return pickFallback()
+
+  const res = await fetch(`${base}/ai/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      messages: toApiMessages(history),
+      role: {
+        name: role.name,
+        subtitle: role.subtitle,
+        scene: role.scene,
+        relationship: role.relationship,
+        intro: role.intro,
+      },
+    }),
+    signal,
+  })
+  if (!res.ok) throw new Error(`ai chat ${res.status}`)
+  const data = (await res.json()) as { reply?: string }
+  return (data.reply ?? '').trim() || pickFallback()
+}
+
 export function AIChatPage() {
   const navigate = useNavigate()
-  const { aiMinutes, consumeAiMinutes, isAuthenticated } = useMockSession()
   const { roleId = 'lanlan' } = useParams()
 
-  const session = useMemo(() => {
-    return aiChatSessions[roleId] ?? aiChatSessions.lanlan
-  }, [roleId])
+  const loader = useCallback(() => loadAIChat(roleId), [roleId])
+  const { data } = useAppData(loader, [roleId])
 
-  const role = useMemo(() => {
-    return aiRoleCards.find((item) => item.id === session.roleId) ?? aiRoleCards[0]
-  }, [session.roleId])
+  if (!data) {
+    return (
+      <div className="page page--detail page--ai-chat">
+        <SubPageHeader title="AI 对话" />
+      </div>
+    )
+  }
 
-  const replyPool = useMemo(() => {
-    return aiReplyPool[session.roleId] ?? aiReplyPool.lanlan
-  }, [session.roleId])
+  return <AIChatView role={data.role} session={data.session} navigate={navigate} />
+}
+
+interface AIChatViewProps {
+  role: AIRoleItem
+  session: AIChatSessionData
+  navigate: ReturnType<typeof useNavigate>
+}
+
+function AIChatView({ role, session, navigate }: AIChatViewProps) {
+  const { aiMinutes, consumeAiMinutes, isAuthenticated } = useMockSession()
 
   const [messages, setMessages] = useState<AIMessageItem[]>(session.messages)
   const [input, setInput] = useState('')
   const [isTyping, setIsTyping] = useState(false)
-  const [, setReplyIndex] = useState(0)
   const [syncedRoleId, setSyncedRoleId] = useState(session.roleId)
   const threadEndRef = useRef<HTMLDivElement | null>(null)
-  const replyTimerRef = useRef<number | null>(null)
+  const abortRef = useRef<AbortController | null>(null)
 
   if (syncedRoleId !== session.roleId) {
     setSyncedRoleId(session.roleId)
     setMessages(session.messages)
     setInput('')
     setIsTyping(false)
-    setReplyIndex(0)
+    abortRef.current?.abort()
+    abortRef.current = null
   }
 
   useEffect(() => {
@@ -76,31 +113,34 @@ export function AIChatPage() {
 
   useEffect(() => {
     return () => {
-      if (replyTimerRef.current !== null) {
-        window.clearTimeout(replyTimerRef.current)
-      }
+      abortRef.current?.abort()
     }
   }, [])
 
   const outOfMinutes = aiMinutes <= 0
   const lowMinutesWarning = aiMinutes > 0 && aiMinutes <= 3
 
-  const scheduleReply = useCallback(() => {
-    if (replyTimerRef.current !== null) {
-      window.clearTimeout(replyTimerRef.current)
-    }
-
-    setIsTyping(true)
-    replyTimerRef.current = window.setTimeout(() => {
-      setReplyIndex((prevIndex) => {
-        const replyText = replyPool[prevIndex % replyPool.length]
-        setMessages((prev) => [...prev, createMessage('ai', replyText)])
-        return prevIndex + 1
-      })
-      setIsTyping(false)
-      replyTimerRef.current = null
-    }, 900)
-  }, [replyPool])
+  const requestReply = useCallback(
+    async (history: AIMessageItem[]) => {
+      abortRef.current?.abort()
+      const ctrl = new AbortController()
+      abortRef.current = ctrl
+      setIsTyping(true)
+      try {
+        const reply = await callAIChat(history, role, ctrl.signal)
+        setMessages((prev) => [...prev, createMessage('ai', reply)])
+      } catch (err) {
+        if ((err as { name?: string })?.name === 'AbortError') return
+        setMessages((prev) => [...prev, createMessage('ai', pickFallback())])
+      } finally {
+        if (abortRef.current === ctrl) {
+          abortRef.current = null
+          setIsTyping(false)
+        }
+      }
+    },
+    [role],
+  )
 
   const handleSend = useCallback(
     (raw: string) => {
@@ -120,12 +160,16 @@ export function AIChatPage() {
         return
       }
 
-      setMessages((prev) => [...prev, createMessage('user', text)])
+      const userMsg = createMessage('user', text)
+      setMessages((prev) => {
+        const next = [...prev, userMsg]
+        void requestReply(next)
+        return next
+      })
       setInput('')
       consumeAiMinutes(1)
-      scheduleReply()
     },
-    [consumeAiMinutes, isAuthenticated, navigate, outOfMinutes, scheduleReply],
+    [consumeAiMinutes, isAuthenticated, navigate, outOfMinutes, requestReply],
   )
 
   const handleStarterClick = useCallback(

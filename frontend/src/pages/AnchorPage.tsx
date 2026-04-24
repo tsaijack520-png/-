@@ -1,24 +1,26 @@
-import { useMemo } from 'react'
+import { useCallback } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
 import { ListCard } from '../components/ContentBlocks'
 import { SubPageHeader } from '../components/SubPageHeader'
-import { anchorProfiles, categoryContents, recommendedContents } from '../data/mockData'
-
-const allContents = [...recommendedContents, ...categoryContents]
+import { loadAnchor } from '../data/source'
+import { useAppData } from '../hooks/useAppData'
 
 export function AnchorPage() {
   const { anchorId = '' } = useParams()
 
-  const anchor = useMemo(() => {
-    return anchorProfiles[anchorId] ?? anchorProfiles['anchor-xiaoduo']
-  }, [anchorId])
+  const loader = useCallback(() => loadAnchor(anchorId), [anchorId])
+  const { data } = useAppData(loader, [anchorId])
 
-  const anchorContents = useMemo(() => {
-    return anchor.featuredContentIds
-      .map((id) => allContents.find((item) => item.id === id))
-      .filter((item): item is (typeof allContents)[number] => Boolean(item))
-  }, [anchor])
+  if (!data) {
+    return (
+      <div className="page page--detail">
+        <SubPageHeader title="主播主页" />
+      </div>
+    )
+  }
+
+  const { profile: anchor, contents: anchorContents } = data
 
   return (
     <div className="page page--detail">

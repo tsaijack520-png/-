@@ -1,32 +1,30 @@
-import { useMemo } from 'react'
+import { useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { ListCard } from '../components/ContentBlocks'
 import { SectionHeader } from '../components/SectionHeader'
-import {
-  categoryContents,
-  homeSectionContentIds,
-  homeSectionMeta,
-  recommendedContents,
-} from '../data/mockData'
 import { SubPageHeader } from '../components/SubPageHeader'
-
-const allContents = [...recommendedContents, ...categoryContents]
+import { loadHomeSection } from '../data/source'
+import { useAppData } from '../hooks/useAppData'
+import type { HomeSectionId } from '../types/app'
 
 export function HomeSectionPage() {
   const { sectionId = 'asmr' } = useParams()
+  const normalized: HomeSectionId =
+    sectionId === 'asmr' || sectionId === 'recommended' || sectionId === 'series' ? sectionId : 'asmr'
 
-  const section = useMemo(() => {
-    return homeSectionMeta[sectionId as keyof typeof homeSectionMeta] ?? homeSectionMeta.asmr
-  }, [sectionId])
+  const loader = useCallback(() => loadHomeSection(normalized), [normalized])
+  const { data } = useAppData(loader, [normalized])
 
-  const contents = useMemo(() => {
-    const ids = homeSectionContentIds[section.id]
+  if (!data) {
+    return (
+      <div className="page page--detail">
+        <SubPageHeader title="加载中" />
+      </div>
+    )
+  }
 
-    return ids
-      .map((id) => allContents.find((item) => item.id === id))
-      .filter((item): item is (typeof allContents)[number] => Boolean(item))
-  }, [section.id])
+  const { section, contents } = data
 
   return (
     <div className="page page--detail">

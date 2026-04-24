@@ -2,31 +2,52 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import {
-  featureTiles,
-  featuredSeries,
-  homeBanners,
-  recommendedContents,
-} from '../data/mockData'
-import {
   FeatureTile,
   PosterCard,
   SeriesCard,
 } from '../components/ContentBlocks'
 import { SectionHeader } from '../components/SectionHeader'
 import { TopBar } from '../components/TopBar'
+import { loadHomeData } from '../data/source'
+import { useAppData } from '../hooks/useAppData'
 
 export function HomePage() {
+  const { data } = useAppData(loadHomeData)
   const [activeBannerIndex, setActiveBannerIndex] = useState(0)
 
+  const banners = data?.banners ?? []
+  const bannerCount = banners.length
+
   useEffect(() => {
+    if (bannerCount <= 1) return
     const timer = window.setInterval(() => {
-      setActiveBannerIndex((current) => (current + 1) % homeBanners.length)
+      setActiveBannerIndex((current) => (current + 1) % bannerCount)
     }, 3600)
-
     return () => window.clearInterval(timer)
-  }, [])
+  }, [bannerCount])
 
-  const activeBanner = homeBanners[activeBannerIndex]
+  useEffect(() => {
+    if (activeBannerIndex >= bannerCount && bannerCount > 0) {
+      setActiveBannerIndex(0)
+    }
+  }, [activeBannerIndex, bannerCount])
+
+  if (!data || bannerCount === 0) {
+    return (
+      <div className="page page--home">
+        <TopBar />
+        <section className="page-section">
+          <div className="info-card info-card--memory">
+            <div className="info-card__label">正在加载</div>
+            <p className="info-card__text">首页内容正在加载中。</p>
+          </div>
+        </section>
+      </div>
+    )
+  }
+
+  const activeBanner = banners[Math.min(activeBannerIndex, bannerCount - 1)]
+  const { featureTiles, recommended, featuredSeries } = data
 
   return (
     <div className="page page--home">
@@ -50,7 +71,7 @@ export function HomePage() {
         </div>
         <Link to={activeBanner.to} className="hero-banner__tap-target" aria-label={`打开 ${activeBanner.title}`} />
         <div className="hero-banner__pagination" aria-label="首页运营 banner 分页">
-          {homeBanners.map((banner, index) => (
+          {banners.map((banner, index) => (
             <button
               key={banner.id}
               type="button"
@@ -85,7 +106,7 @@ export function HomePage() {
       <section className="page-section">
         <SectionHeader title="今日推荐" moreTo="/home/section/recommended" />
         <div className="poster-row">
-          {recommendedContents.map((item) => (
+          {recommended.map((item) => (
             <PosterCard
               key={item.id}
               title={item.title}

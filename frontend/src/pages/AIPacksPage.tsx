@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router-dom'
 
 import { CheckCircleIcon, WalletIcon } from '../components/Icons'
 import { StatusCard } from '../components/FeedbackBlocks'
-import { aiPacks } from '../data/mockData'
+import { loadAIPacks } from '../data/source'
+import { useAppData } from '../hooks/useAppData'
 import { useMockSession } from '../hooks/useMockSession'
 import { SubPageHeader } from '../components/SubPageHeader'
 
@@ -11,9 +12,11 @@ export function AIPacksPage() {
   const navigate = useNavigate()
   const { aiMinutes, isAuthenticated, purchaseAiPack } = useMockSession()
   const [lastPurchased, setLastPurchased] = useState<string>('')
+  const { data } = useAppData(loadAIPacks)
+  const packs = data ?? []
 
   function handlePurchase(packId: string) {
-    const pack = aiPacks.find((item) => item.id === packId)
+    const pack = packs.find((item) => item.id === packId)
 
     if (!pack) {
       return
@@ -63,7 +66,7 @@ export function AIPacksPage() {
       ) : null}
 
       <section className="pack-list">
-        {aiPacks.map((pack) => (
+        {packs.map((pack) => (
           <article key={pack.id} className={pack.recommended ? 'pack-card pack-card--recommended' : 'pack-card'}>
             <div className="pack-card__head">
               <div>

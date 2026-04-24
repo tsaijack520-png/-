@@ -1,0 +1,28 @@
+.DS_Store
+node_modules/
+*.log
+
+# 部署 .env 不进库
+deploy/.env
+backend/.env
+frontend/.env
+frontend/.env.local
+
+# 本地构建产物（仓库根的 index.html + assets/ 是 GH Pages 部署，需要进库）
+frontend/dist/
+
+# 临时打包
+*.tar.gz
+*.zip
+
+# Python 缓存
+__pycache__/
+*.pyc
+
+# 编辑器
+.vscode/
+.idea/
+.kiro/
+
+# Claude 工程数据
+.claude/

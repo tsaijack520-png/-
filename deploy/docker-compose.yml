@@ -1,0 +1,100 @@
+# 耳边 · VPS 生产栈（一条 compose 拉起全部）
+#
+# 服务：
+#   postgres  —— 数据库（不对外暴露端口）
+#   redis     —— 缓存（不对外暴露端口）
+#   directus  —— 后台 CMS + API（仅内网）
+#   web       —— nginx 托管前端 + 反代 /api → directus
+#
+# 外部只暴露 web 的 80 端口，建议前置 Caddy/Traefik/Nginx + Let's Encrypt 做 443。
+
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-directus}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-directus}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-directus}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    volumes:
+      - redisdata:/data
+
+  directus:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    image: erbian-backend:latest
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      KEY: ${DIRECTUS_KEY}
+      SECRET: ${DIRECTUS_SECRET}
+
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+
+      DB_CLIENT: pg
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: ${POSTGRES_DB:-directus}
+      DB_USER: ${POSTGRES_USER:-directus}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+
+      CACHE_ENABLED: "true"
+      CACHE_STORE: redis
+      REDIS: "redis://redis:6379"
+
+      PUBLIC_URL: ${PUBLIC_URL}
+      CORS_ENABLED: "true"
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+
+      FILES_MAX_UPLOAD_SIZE: ${FILES_MAX_UPLOAD_SIZE:-200mb}
+
+      # 存储：默认本地磁盘。要上 R2，把下面几条取消注释并在 .env 里填
+      STORAGE_LOCATIONS: ${STORAGE_LOCATIONS:-local}
+      STORAGE_LOCAL_DRIVER: local
+      STORAGE_LOCAL_ROOT: /directus/uploads
+
+      STORAGE_R2_DRIVER: ${STORAGE_R2_DRIVER:-}
+      STORAGE_R2_KEY: ${STORAGE_R2_KEY:-}
+      STORAGE_R2_SECRET: ${STORAGE_R2_SECRET:-}
+      STORAGE_R2_BUCKET: ${STORAGE_R2_BUCKET:-}
+      STORAGE_R2_REGION: ${STORAGE_R2_REGION:-auto}
+      STORAGE_R2_ENDPOINT: ${STORAGE_R2_ENDPOINT:-}
+      STORAGE_R2_FORCE_PATH_STYLE: ${STORAGE_R2_FORCE_PATH_STYLE:-true}
+      STORAGE_R2_ROOT: ${STORAGE_R2_ROOT:-}
+
+      # 首次启动自动 bootstrap（建表 + 建管理员）；后续重启幂等
+    command: >
+      sh -c "npx directus bootstrap && npx directus start"
+    ports:
+      - "127.0.0.1:8055:8055"
+    volumes:
+      - uploads:/directus/uploads
+
+# 前端不进容器：本地 `cd frontend && VITE_API_BASE_URL=/api npm run build`，
+# 然后把 dist/ rsync 到主机 /var/www/erbian/，由主机 nginx 直接 serve。
+# 见 deploy/README.md。
+
+volumes:
+  pgdata:
+  redisdata:
+  uploads:

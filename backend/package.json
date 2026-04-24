@@ -1,0 +1,15 @@
+{
+  "name": "erbian-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "耳边 Directus 后台部署配置",
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "start:local": "docker compose up",
+    "stop:local": "docker compose down"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { SeriesCard } from '../components/ContentBlocks'
@@ -6,7 +6,8 @@ import { CheckCircleIcon, AppleIcon, LockIcon } from '../components/Icons'
 import { StatusCard } from '../components/FeedbackBlocks'
 import { SectionHeader } from '../components/SectionHeader'
 import { SubPageHeader } from '../components/SubPageHeader'
-import { contentDetails, playerStates } from '../data/mockData'
+import { loadContentDetail } from '../data/source'
+import { useAppData } from '../hooks/useAppData'
 import { useMockSession } from '../hooks/useMockSession'
 
 export function ContentDetailPage() {
@@ -16,11 +17,18 @@ export function ContentDetailPage() {
   const [playlistMessage, setPlaylistMessage] = useState('')
   const [paymentState, setPaymentState] = useState<'idle' | 'pending' | 'success' | 'exists'>('idle')
 
-  const detail = useMemo(() => {
-    return contentDetails[contentId] ?? contentDetails.c1
-  }, [contentId])
+  const loader = useCallback(() => loadContentDetail(contentId), [contentId])
+  const { data } = useAppData(loader, [contentId])
 
-  const playerState = playerStates[detail.id] ?? playerStates.c1
+  if (!data) {
+    return (
+      <div className="page page--detail">
+        <SubPageHeader title="内容详情" />
+      </div>
+    )
+  }
+
+  const { detail } = data
   const unlocked = hasUnlockedContent(detail.id)
   const needsVip = detail.unlockLabel.includes('VIP')
   const actionLabel = unlocked ? '已解锁，可直接收听' : detail.unlockLabel
@@ -157,21 +165,23 @@ export function ContentDetailPage() {
         </button>
       </section>
 
-      <section className="page-section page-section--compact">
-        <SectionHeader title="所属系列" moreTo="/home/section/series" />
-        <SeriesCard
-          title={detail.seriesTitle}
-          meta={detail.seriesMeta}
-          tone={detail.tone}
-          to="/home/section/series"
-          coverImageUrl={detail.coverImageUrl}
-        />
-      </section>
+      {detail.seriesTitle ? (
+        <section className="page-section page-section--compact">
+          <SectionHeader title="所属系列" moreTo="/home/section/series" />
+          <SeriesCard
+            title={detail.seriesTitle}
+            meta={detail.seriesMeta}
+            tone={detail.tone}
+            to="/home/section/series"
+            coverImageUrl={detail.coverImageUrl}
+          />
+        </section>
+      ) : null}
 
       <section className="info-card info-card--memory">
         <div className="info-card__label">继续追更</div>
         <p className="info-card__text">试听、单集解锁或从系列入口直接追更。</p>
-        <Link to={`/player/${playerState.contentId}`} className="button button--secondary">
+        <Link to={`/player/${detail.id}`} className="button button--secondary">
           继续播放
         </Link>
       </section>

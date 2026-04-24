@@ -4,8 +4,9 @@ import { Link, useNavigate } from 'react-router-dom'
 import { CheckCircleIcon, WalletIcon } from '../components/Icons'
 import { StatusCard } from '../components/FeedbackBlocks'
 import { SubPageHeader } from '../components/SubPageHeader'
+import { loadVipPlans } from '../data/source'
+import { useAppData } from '../hooks/useAppData'
 import { useMockSession } from '../hooks/useMockSession'
-import { vipCreditPacks, vipSubscriptionPlans } from '../data/mockData'
 import type { VipPlan } from '../types/app'
 
 export function ProfileVipPage() {
@@ -17,6 +18,10 @@ export function ProfileVipPage() {
     user,
   } = useMockSession()
   const [purchaseFeedback, setPurchaseFeedback] = useState<string>('')
+  const { data } = useAppData(loadVipPlans)
+
+  const subscriptions = data?.subscriptions ?? []
+  const credits = data?.credits ?? []
 
   function handlePurchaseVip(plan: VipPlan) {
     if (!isAuthenticated) {
@@ -75,7 +80,7 @@ export function ProfileVipPage() {
           <h2 className="section-header__title">订阅套餐</h2>
         </div>
         <div className="pack-list">
-          {vipSubscriptionPlans.map((plan) => (
+          {subscriptions.map((plan) => (
             <article key={plan.id} className={plan.recommended ? 'pack-card pack-card--recommended' : 'pack-card'}>
               <div className="pack-card__head">
                 <div>
@@ -99,7 +104,7 @@ export function ProfileVipPage() {
           <h2 className="section-header__title">点数充值</h2>
         </div>
         <div className="pack-list">
-          {vipCreditPacks.map((plan) => (
+          {credits.map((plan) => (
             <article key={plan.id} className={plan.recommended ? 'pack-card pack-card--recommended' : 'pack-card'}>
               <div className="pack-card__head">
                 <div>

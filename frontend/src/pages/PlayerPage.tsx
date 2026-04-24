@@ -4,7 +4,8 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { StatusCard } from '../components/FeedbackBlocks'
 import { CheckCircleIcon, InfoIcon, LockIcon } from '../components/Icons'
 import { SubPageHeader } from '../components/SubPageHeader'
-import { contentDetails, getSeriesEpisodeIds, playerStates } from '../data/mockData'
+import { loadContentDetail } from '../data/source'
+import { useAppData } from '../hooks/useAppData'
 import { useMockSession } from '../hooks/useMockSession'
 
 const PREVIEW_SECONDS = 30
@@ -30,15 +31,31 @@ export function PlayerPage() {
   const { addPlaylistItem, hasUnlockedContent } = useMockSession()
   const { contentId = '' } = useParams()
 
-  const player = useMemo(() => {
-    return playerStates[contentId] ?? playerStates.c1
-  }, [contentId])
+  const loader = useCallback(() => loadContentDetail(contentId), [contentId])
+  const { data } = useAppData(loader, [contentId])
 
-  const detail = useMemo(() => {
-    return contentDetails[player.contentId] ?? contentDetails.c1
-  }, [player.contentId])
+  if (!data) {
+    return (
+      <div className="page page--detail">
+        <SubPageHeader title="正在播放" />
+      </div>
+    )
+  }
 
-  const episodes = useMemo(() => getSeriesEpisodeIds(detail.seriesId), [detail.seriesId])
+  return <PlayerView bundle={data} contentId={contentId} navigate={navigate} addPlaylistItem={addPlaylistItem} hasUnlockedContent={hasUnlockedContent} />
+}
+
+interface PlayerViewProps {
+  bundle: NonNullable<Awaited<ReturnType<typeof loadContentDetail>>>
+  contentId: string
+  navigate: ReturnType<typeof useNavigate>
+  addPlaylistItem: ReturnType<typeof useMockSession>['addPlaylistItem']
+  hasUnlockedContent: ReturnType<typeof useMockSession>['hasUnlockedContent']
+}
+
+function PlayerView({ bundle, navigate, addPlaylistItem, hasUnlockedContent }: PlayerViewProps) {
+  const { detail, playerState: player, episodeIds: episodes } = bundle
+
   const currentIndex = episodes.indexOf(player.contentId)
   const prevEpisodeId = currentIndex > 0 ? episodes[currentIndex - 1] : null
   const nextEpisodeId = currentIndex >= 0 && currentIndex < episodes.length - 1 ? episodes[currentIndex + 1] : null
