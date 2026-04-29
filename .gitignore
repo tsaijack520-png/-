@@ -26,3 +26,11 @@ __pycache__/
 
 # Claude 工程数据
 .claude/
+
+# Capacitor / iOS 构建产物
+frontend/ios/App/build/
+frontend/ios/App/Pods/
+frontend/ios/App/.swiftpm/
+frontend/ios/DerivedData/
+**/*.xcodeproj/xcuserdata/
+**/*.xcworkspace/xcuserdata/

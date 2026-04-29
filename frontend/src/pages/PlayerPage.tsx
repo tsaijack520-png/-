@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
+import { Haptics, ImpactStyle } from '@capacitor/haptics'
+
 import { StatusCard } from '../components/FeedbackBlocks'
 import { CheckCircleIcon, InfoIcon, LockIcon } from '../components/Icons'
 import { SubPageHeader } from '../components/SubPageHeader'
@@ -124,6 +126,7 @@ function PlayerView({ bundle, navigate, addPlaylistItem, hasUnlockedContent }: P
   }, [addPlaylistItem, detail])
 
   const handleToggle = useCallback(() => {
+    void Haptics.impact({ style: ImpactStyle.Light }).catch(() => {})
     if (reachedEnd) {
       setCurrentSeconds(0)
       setIsPlaying(true)

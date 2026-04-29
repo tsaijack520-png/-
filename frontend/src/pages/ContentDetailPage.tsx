@@ -1,6 +1,8 @@
 import { useCallback, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
+import { Share } from '@capacitor/share'
+
 import { SeriesCard } from '../components/ContentBlocks'
 import { CheckCircleIcon, InfoIcon } from '../components/Icons'
 import { StatusCard } from '../components/FeedbackBlocks'
@@ -10,6 +12,7 @@ import { UGCReportSheet } from '../components/UGCReportSheet'
 import { loadContentDetail } from '../data/source'
 import { useAppData } from '../hooks/useAppData'
 import { useMockSession } from '../hooks/useMockSession'
+import { isNativePlatform } from '../utils/nativeBootstrap'
 
 export function ContentDetailPage() {
   const navigate = useNavigate()
@@ -18,6 +21,7 @@ export function ContentDetailPage() {
   const [playlistMessage, setPlaylistMessage] = useState('')
   const [reportOpen, setReportOpen] = useState(false)
   const [reportFeedback, setReportFeedback] = useState('')
+  const [shareError, setShareError] = useState('')
 
   const loader = useCallback(() => loadContentDetail(contentId), [contentId])
   const { data } = useAppData(loader, [contentId])
@@ -42,6 +46,32 @@ export function ContentDetailPage() {
     }
     const result = addPlaylistItem(detail)
     setPlaylistMessage(result === 'added' ? '已加入片单，可在「我的」里继续找到。' : '这条内容已经在你的片单里了。')
+  }
+
+  async function handleShare() {
+    setShareError('')
+    const text = `${detail.title} · ${detail.creator}\n${detail.description.slice(0, 60)}`
+    try {
+      if (isNativePlatform()) {
+        await Share.share({
+          title: detail.title,
+          text,
+          dialogTitle: '分享给朋友',
+        })
+      } else if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+        await navigator.share({ title: detail.title, text })
+      } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText(text)
+        setShareError('已复制到剪贴板。')
+      } else {
+        setShareError('当前环境不支持分享，请手动复制内容。')
+      }
+    } catch (err) {
+      const name = (err as { name?: string })?.name
+      if (name !== 'AbortError' && name !== 'NotAllowedError') {
+        setShareError('分享暂不可用，请稍后再试。')
+      }
+    }
   }
 
   return (
@@ -121,9 +151,13 @@ export function ContentDetailPage() {
         <button type="button" className="button button--secondary button--block" onClick={handleAddPlaylist}>
           加入片单
         </button>
+        <button type="button" className="button button--secondary button--block" onClick={handleShare}>
+          分享给朋友
+        </button>
         <button type="button" className="button button--ghost button--block" onClick={() => setReportOpen(true)}>
           举报内容
         </button>
+        {shareError ? <div className="auth-field__error">{shareError}</div> : null}
       </section>
 
       {detail.seriesTitle ? (
