@@ -24,7 +24,7 @@ export function CategoryPage() {
 
   const activeRole = roleFilters.includes(roleParam as (typeof roleFilters)[number])
     ? (roleParam as (typeof roleFilters)[number])
-    : '女友音'
+    : '温柔女声'
   const activeScene = sceneFilters.includes(sceneParam as (typeof sceneFilters)[number])
     ? (sceneParam as (typeof sceneFilters)[number])
     : '睡前陪伴'

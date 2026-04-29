@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { apiBaseUrl } from '../api/client'
 import { AIReportSheet } from '../components/AIReportSheet'
 import { ContentRatingGate } from '../components/ContentRatingGate'
 import { StatusCard } from '../components/FeedbackBlocks'
-import { InfoIcon, WalletIcon } from '../components/Icons'
+import { InfoIcon } from '../components/Icons'
 import { SubPageHeader } from '../components/SubPageHeader'
 import { loadAIChat } from '../data/source'
 import { useAppData } from '../hooks/useAppData'
@@ -108,6 +108,8 @@ function AIChatView({ role, session, navigate }: AIChatViewProps) {
   const [guardNotice, setGuardNotice] = useState('')
   const [reportTarget, setReportTarget] = useState<AIMessageItem | null>(null)
   const [reportFeedback, setReportFeedback] = useState('')
+  const [showRoleInfo, setShowRoleInfo] = useState(false)
+  const [showSafetyTip, setShowSafetyTip] = useState(false)
   const threadEndRef = useRef<HTMLDivElement | null>(null)
   const abortRef = useRef<AbortController | null>(null)
 
@@ -119,6 +121,7 @@ function AIChatView({ role, session, navigate }: AIChatViewProps) {
     setGuardNotice('')
     setReportTarget(null)
     setReportFeedback('')
+    setShowRoleInfo(false)
     abortRef.current?.abort()
     abortRef.current = null
   }
@@ -135,8 +138,7 @@ function AIChatView({ role, session, navigate }: AIChatViewProps) {
 
   const outOfMinutes = aiMinutes <= 0
   const lowMinutesWarning = aiMinutes > 0 && aiMinutes <= 3
-
-  const ageGateOpen = useMemo(() => !ageAcknowledged, [ageAcknowledged])
+  const ageGateOpen = !ageAcknowledged
 
   const requestReply = useCallback(
     async (history: AIMessageItem[]) => {
@@ -167,16 +169,11 @@ function AIChatView({ role, session, navigate }: AIChatViewProps) {
   const handleSend = useCallback(
     (raw: string) => {
       const text = raw.trim()
-
-      if (!text) {
-        return
-      }
-
+      if (!text) return
       if (!isAuthenticated) {
         navigate('/auth')
         return
       }
-
       if (outOfMinutes) {
         setGuardNotice('体验时长已用完，新版本上线后会通过会员体系补充。')
         return
@@ -208,15 +205,18 @@ function AIChatView({ role, session, navigate }: AIChatViewProps) {
         setGuardNotice('体验时长已用完，欢迎在「帮助与反馈」里联系我们补充。')
         return
       }
-
       handleSend(prompt)
     },
     [handleSend, outOfMinutes],
   )
 
+  const userMessageCount = messages.filter((m) => m.speaker === 'user').length
+  const showStarters = userMessageCount === 0
+  const minuteBadgeTone = outOfMinutes ? 'danger' : lowMinutesWarning ? 'warning' : 'default'
+
   return (
     <div className="page page--detail page--ai-chat">
-      <SubPageHeader title="AI 对话" />
+      <SubPageHeader title={session.roleName} />
 
       <ContentRatingGate
         acknowledged={ageAcknowledged}
@@ -224,41 +224,78 @@ function AIChatView({ role, session, navigate }: AIChatViewProps) {
         onDecline={() => navigate('/')}
       />
 
-      <section className={`detail-hero detail-hero--${session.tone}`}>
+      <section className={`ai-chat-hero ai-chat-hero--${session.tone}`}>
         <div className="ai-chat-hero__top">
-          <div className="ai-role-card__avatar ai-role-card__avatar--large" aria-hidden="true">
+          <div className="ai-chat-hero__avatar" aria-hidden="true">
             {role.name.slice(0, 1)}
           </div>
-          <div>
-            <div className="detail-hero__eyebrow">{role.scene}</div>
-            <h1 className="detail-hero__title">{session.roleName}</h1>
-            <div className="detail-hero__meta">{session.roleSubtitle}</div>
+          <div className="ai-chat-hero__meta">
+            <div className="ai-chat-hero__name-row">
+              <h1 className="ai-chat-hero__name">{session.roleName}</h1>
+              <span className="ai-chat-hero__rating">17+</span>
+            </div>
+            <div className="ai-chat-hero__subline">{session.roleSubtitle}</div>
+            <div className="ai-chat-hero__chip-row">
+              <span className="ai-chat-chip ai-chat-chip--scene">{role.scene}</span>
+              <span className="ai-chat-chip">{role.relationship}</span>
+              <span className={`ai-chat-chip ai-chat-chip--minutes ai-chat-chip--${minuteBadgeTone}`}>
+                {outOfMinutes ? '体验时长已用完' : `剩余 ${aiMinutes} 分钟`}
+              </span>
+            </div>
           </div>
         </div>
-        <p className="detail-hero__description">{role.intro}</p>
+        <p className="ai-chat-hero__intro">{role.intro}</p>
+        <div className="ai-chat-hero__actions">
+          <button
+            type="button"
+            className={showRoleInfo ? 'ai-chat-hero__toggle ai-chat-hero__toggle--open' : 'ai-chat-hero__toggle'}
+            onClick={() => setShowRoleInfo((value) => !value)}
+            aria-expanded={showRoleInfo}
+          >
+            {showRoleInfo ? '收起角色信息' : '查看角色信息'}
+          </button>
+          <button
+            type="button"
+            className="ai-chat-hero__toggle"
+            onClick={() => setShowSafetyTip((value) => !value)}
+            aria-expanded={showSafetyTip}
+          >
+            内容与安全说明
+          </button>
+        </div>
       </section>
 
-      <StatusCard
-        eyebrow="安全提示"
-        title="AI 内容由模型生成"
-        description="所有 AI 回复均由模型即时生成，可能与事实不符。我们已开启敏感词过滤；如发现不当回复，请点击该条消息下方的「举报」按钮，开发团队会在 24 小时内核查处理。"
-        tone="default"
-        icon={<InfoIcon className="status-card__glyph" />}
-      />
+      {showRoleInfo ? (
+        <section className="ai-chat-info-panel">
+          <div className="ai-chat-info-panel__row">
+            <span className="ai-chat-info-panel__label">会话状态</span>
+            <span className="ai-chat-info-panel__value">{session.sessionStatus}</span>
+          </div>
+          <div className="ai-chat-info-panel__memory">
+            <span className="ai-chat-info-panel__label">记忆要点</span>
+            <p className="ai-chat-info-panel__memory-text">{session.memory}</p>
+          </div>
+          <div className="ai-chat-info-panel__row ai-chat-info-panel__row--wrap">
+            <span className="ai-chat-info-panel__label">基础偏好</span>
+            <div className="ai-chat-info-panel__chips">
+              {session.preferences.map((item) => (
+                <span key={item.label} className="ai-chat-info-panel__pref">
+                  <em>{item.label}</em>
+                  {item.value}
+                </span>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
 
-      <StatusCard
-        eyebrow="剩余体验时长"
-        title={`${aiMinutes} 分钟可用`}
-        description={
-          outOfMinutes
-            ? '体验时长已用完。会员与时长包功能尚未开放，可在「帮助与反馈」里联系我们补充。'
-            : lowMinutesWarning
-              ? '剩余时长不多了，建议合理安排今天的对话节奏。'
-              : '每次发送会消耗 1 分钟。这是我们提供的体验额度，未来会员上线后会有正式的时长方案。'
-        }
-        tone={outOfMinutes ? 'warning' : lowMinutesWarning ? 'warning' : 'default'}
-        icon={<WalletIcon className="status-card__glyph" />}
-      />
+      {showSafetyTip ? (
+        <section className="ai-chat-info-panel ai-chat-info-panel--safety">
+          <p className="ai-chat-info-panel__memory-text">
+            AI 回复均由模型即时生成，可能与事实不符。耳边已开启敏感词过滤；如发现不当回复，请点击该条消息下方的「举报」按钮，开发团队会在 24 小时内核查处理。本服务面向 17 岁及以上用户。
+          </p>
+        </section>
+      ) : null}
 
       {guardNotice ? (
         <StatusCard
@@ -290,30 +327,10 @@ function AIChatView({ role, session, navigate }: AIChatViewProps) {
         />
       ) : null}
 
-      <section className="info-card info-card--memory">
-        <div className="info-card__label">当前会话状态</div>
-        <div className="info-card__value info-card__value--sm">{session.sessionStatus}</div>
-        <p className="info-card__text">{session.memory}</p>
-      </section>
-
-      <section className="page-section page-section--compact">
-        <div className="section-header">
-          <h2 className="section-header__title">基础偏好</h2>
-        </div>
-        <div className="preference-grid">
-          {session.preferences.map((item) => (
-            <div key={item.label} className="preference-chip">
-              <span className="preference-chip__label">{item.label}</span>
-              <span className="preference-chip__value">{item.value}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="page-section page-section--compact">
-        <div className="section-header">
-          <h2 className="section-header__title">对话片段</h2>
-          <span className="section-header__action">{isTyping ? '对方正在输入…' : '语音中'}</span>
+      <section className="ai-chat-thread-card">
+        <div className="ai-chat-thread-card__head">
+          <span className="ai-chat-thread-card__title">对话</span>
+          <span className="ai-chat-thread-card__status">{isTyping ? '对方正在输入…' : '已连线'}</span>
         </div>
         <div className="chat-thread">
           {messages.map((message) => (
@@ -343,25 +360,25 @@ function AIChatView({ role, session, navigate }: AIChatViewProps) {
           ) : null}
           <div ref={threadEndRef} />
         </div>
-      </section>
 
-      <section className="page-section page-section--compact">
-        <div className="section-header">
-          <h2 className="section-header__title">推荐开场</h2>
-        </div>
-        <div className="starter-prompt-list">
-          {session.starterPrompts.map((prompt) => (
-            <button
-              key={prompt}
-              type="button"
-              className="starter-prompt"
-              onClick={() => handleStarterClick(prompt)}
-              disabled={outOfMinutes}
-            >
-              {prompt}
-            </button>
-          ))}
-        </div>
+        {showStarters ? (
+          <div className="ai-chat-thread-card__starters">
+            <div className="ai-chat-thread-card__starters-label">不知道说什么 · 试试这些开场</div>
+            <div className="starter-prompt-list">
+              {session.starterPrompts.map((prompt) => (
+                <button
+                  key={prompt}
+                  type="button"
+                  className="starter-prompt"
+                  onClick={() => handleStarterClick(prompt)}
+                  disabled={outOfMinutes || ageGateOpen}
+                >
+                  {prompt}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </section>
 
       <form
@@ -388,13 +405,12 @@ function AIChatView({ role, session, navigate }: AIChatViewProps) {
         </button>
       </form>
 
-      <section className="detail-actions">
-        <Link to="/ai" className="button button--secondary button--block">
-          切换角色
-        </Link>
-        <Link to="/support/help" className="button button--ghost button--block">
-          帮助与反馈
-        </Link>
+      <section className="ai-chat-footer">
+        <Link to="/ai" className="ai-chat-footer__link">切换角色</Link>
+        <span className="ai-chat-footer__sep">·</span>
+        <Link to="/support/help" className="ai-chat-footer__link">帮助与反馈</Link>
+        <span className="ai-chat-footer__sep">·</span>
+        <Link to="/support/terms" className="ai-chat-footer__link">社区准则</Link>
       </section>
 
       <AIReportSheet
