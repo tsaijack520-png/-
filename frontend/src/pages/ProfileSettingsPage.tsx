@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -6,13 +6,25 @@ import { MenuCard } from '../components/ContentBlocks'
 import { StatusCard } from '../components/FeedbackBlocks'
 import { AppleIcon, CheckCircleIcon, InfoIcon } from '../components/Icons'
 import { SubPageHeader } from '../components/SubPageHeader'
+import { anchorProfiles } from '../data/mockData'
 import { useMockSession } from '../hooks/useMockSession'
 
 type EditingField = 'phone' | 'email' | 'apple' | null
 
 export function ProfileSettingsPage() {
   const navigate = useNavigate()
-  const { user, logout, switchRole, updateUser } = useMockSession()
+  const { user, logout, switchRole, updateUser, blockedAnchorIds, unblockAnchor, reportLog } = useMockSession()
+
+  const blockedAnchors = useMemo(
+    () =>
+      blockedAnchorIds.map((id) => ({
+        id,
+        name: anchorProfiles[id]?.name ?? id,
+      })),
+    [blockedAnchorIds],
+  )
+
+  const recentReports = reportLog.slice(0, 5)
   const [logoutReady, setLogoutReady] = useState(false)
   const [pendingNotice, setPendingNotice] = useState<string>('')
   const [notifyOn, setNotifyOn] = useState(true)
@@ -140,7 +152,7 @@ export function ProfileSettingsPage() {
           >
             <div className="identity-card__eyebrow">听众</div>
             <div className="identity-card__title">我想听故事</div>
-            <p className="identity-card__text">收听内容、购买单集、开通会员与 AI 陪伴。</p>
+            <p className="identity-card__text">收听内容、收藏片单，体验 AI 陪伴对话。</p>
           </button>
           <button
             type="button"
@@ -313,11 +325,65 @@ export function ProfileSettingsPage() {
 
       <section className="page-section page-section--compact">
         <div className="section-header">
+          <h2 className="section-header__title">已拉黑创作者</h2>
+        </div>
+        {blockedAnchors.length === 0 ? (
+          <p className="info-card__text settings-empty-line">暂无拉黑记录。在主播主页可对违规创作者进行拉黑，拉黑后其内容不会再出现在你的浏览动线中。</p>
+        ) : (
+          <div className="menu-stack">
+            {blockedAnchors.map((anchor) => (
+              <div key={anchor.id} className="menu-card menu-card--row">
+                <div>
+                  <div className="menu-card__label">{anchor.name}</div>
+                  <div className="menu-card__value">已屏蔽其全部内容</div>
+                </div>
+                <button
+                  type="button"
+                  className="button button--ghost"
+                  onClick={() => unblockAnchor(anchor.id)}
+                >
+                  解除拉黑
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="page-section page-section--compact">
+        <div className="section-header">
+          <h2 className="section-header__title">我的举报记录</h2>
+        </div>
+        {recentReports.length === 0 ? (
+          <p className="info-card__text settings-empty-line">还没有提交过举报。在 AI 对话气泡、内容详情页和主播主页都能找到「举报」入口，开发团队承诺在 24 小时内核查处理。</p>
+        ) : (
+          <div className="menu-stack">
+            {recentReports.map((report) => (
+              <article key={report.id} className="report-row">
+                <div>
+                  <div className="report-row__title">{report.targetTitle}</div>
+                  <div className="report-row__meta">
+                    {report.surface === 'ai' ? 'AI 回复' : report.surface === 'content' ? '内容' : report.surface === 'anchor' ? '创作者' : '评论'}
+                    {' · '}
+                    {report.reason}
+                    {' · '}
+                    {report.submittedAt}
+                  </div>
+                </div>
+                <span className="report-row__status">{report.status}</span>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="page-section page-section--compact">
+        <div className="section-header">
           <h2 className="section-header__title">帮助与法务</h2>
         </div>
         <div className="menu-stack">
           <MenuCard label="隐私政策" value="查看说明" to="/support/privacy" />
-          <MenuCard label="用户协议" value="查看说明" to="/support/terms" />
+          <MenuCard label="用户协议与社区准则" value="查看说明" to="/support/terms" />
           <MenuCard label="帮助与反馈" value="常见问题" to="/support/help" />
           <MenuCard label="关于耳边" value="产品介绍" to="/support/about" />
         </div>

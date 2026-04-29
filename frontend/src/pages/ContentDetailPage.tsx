@@ -2,10 +2,11 @@ import { useCallback, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { SeriesCard } from '../components/ContentBlocks'
-import { CheckCircleIcon, AppleIcon, LockIcon } from '../components/Icons'
+import { CheckCircleIcon, InfoIcon } from '../components/Icons'
 import { StatusCard } from '../components/FeedbackBlocks'
 import { SectionHeader } from '../components/SectionHeader'
 import { SubPageHeader } from '../components/SubPageHeader'
+import { UGCReportSheet } from '../components/UGCReportSheet'
 import { loadContentDetail } from '../data/source'
 import { useAppData } from '../hooks/useAppData'
 import { useMockSession } from '../hooks/useMockSession'
@@ -13,9 +14,10 @@ import { useMockSession } from '../hooks/useMockSession'
 export function ContentDetailPage() {
   const navigate = useNavigate()
   const { contentId = '' } = useParams()
-  const { isAuthenticated, addPlaylistItem, hasUnlockedContent, unlockContent, user } = useMockSession()
+  const { isAuthenticated, addPlaylistItem, hasUnlockedContent, submitReport } = useMockSession()
   const [playlistMessage, setPlaylistMessage] = useState('')
-  const [paymentState, setPaymentState] = useState<'idle' | 'pending' | 'success' | 'exists'>('idle')
+  const [reportOpen, setReportOpen] = useState(false)
+  const [reportFeedback, setReportFeedback] = useState('')
 
   const loader = useCallback(() => loadContentDetail(contentId), [contentId])
   const { data } = useAppData(loader, [contentId])
@@ -31,37 +33,15 @@ export function ContentDetailPage() {
   const { detail } = data
   const unlocked = hasUnlockedContent(detail.id)
   const needsVip = detail.unlockLabel.includes('VIP')
-  const actionLabel = unlocked ? '已解锁，可直接收听' : detail.unlockLabel
+  const playerActionLabel = unlocked ? '继续收听' : needsVip ? '试听片段' : '开始试听'
 
   function handleAddPlaylist() {
-    const result = addPlaylistItem(detail)
-    setPlaylistMessage(result === 'added' ? '已加入片单，可在"我的"里继续找到。' : '这条内容已经在你的片单里了。')
-  }
-
-  function handleUnlock() {
     if (!isAuthenticated) {
       navigate('/auth')
       return
     }
-
-    if (needsVip) {
-      navigate('/me/vip')
-      return
-    }
-
-    setPaymentState('pending')
-    window.setTimeout(() => {
-      const result = unlockContent(detail)
-      if (result.ok) {
-        setPaymentState('success')
-        return
-      }
-
-      setPaymentState(result.reason === 'already-unlocked' ? 'exists' : 'idle')
-      if (result.reason === 'auth') {
-        navigate('/auth')
-      }
-    }, 700)
+    const result = addPlaylistItem(detail)
+    setPlaylistMessage(result === 'added' ? '已加入片单，可在「我的」里继续找到。' : '这条内容已经在你的片单里了。')
   }
 
   return (
@@ -84,7 +64,7 @@ export function ContentDetailPage() {
         <div className="detail-hero__eyebrow">{detail.eyebrow}</div>
         <h1 className="detail-hero__title">{detail.title}</h1>
         <div className="detail-hero__meta">
-          主播：{detail.creator} · {detail.duration} · {detail.status}
+          主播：{detail.creator} · {detail.duration}
         </div>
         <div className="detail-tags">
           {detail.tags.map((tag) => (
@@ -96,46 +76,12 @@ export function ContentDetailPage() {
         <p className="detail-hero__description">{detail.description}</p>
       </section>
 
-      {paymentState === 'pending' ? (
+      {needsVip ? (
         <StatusCard
-          eyebrow="支付中"
-          title="正在确认购买结果"
-          description="请稍候，支付完成后权益会立即生效。"
-          icon={<AppleIcon className="status-card__glyph" />}
-        />
-      ) : null}
-
-      {paymentState === 'success' ? (
-        <StatusCard
-          eyebrow="解锁成功"
-          title="可以开始收听了"
-          description={`《${detail.title}》已加入你的已购内容，可在片单和订单记录中查看。`}
-          tone="success"
-          icon={<CheckCircleIcon className="status-card__glyph" />}
-          actions={
-            <>
-              <Link to={`/player/${detail.id}`} className="button button--primary">
-                立即收听
-              </Link>
-              <Link to="/me/orders" className="button button--secondary">
-                查看订单
-              </Link>
-            </>
-          }
-        />
-      ) : null}
-
-      {paymentState === 'exists' ? (
-        <StatusCard
-          eyebrow="无需重复购买"
-          title="这条内容已在你的权益内"
-          description={user?.vipStatus.subscriptionActive ? '你当前已开通会员，可直接收听。' : '你之前已经解锁过这条内容，可直接进入播放。'}
-          icon={<LockIcon className="status-card__glyph" />}
-          actions={
-            <Link to={`/player/${detail.id}`} className="button button--secondary">
-              继续播放
-            </Link>
-          }
+          eyebrow="完整版"
+          title="完整版即将随会员开放"
+          description="首版可免费试听本条内容的开头部分。完整版会在会员体系上线后开放，届时通过 Apple 内购统一处理。"
+          icon={<InfoIcon className="status-card__glyph" />}
         />
       ) : null}
 
@@ -153,15 +99,30 @@ export function ContentDetailPage() {
         />
       ) : null}
 
+      {reportFeedback ? (
+        <StatusCard
+          eyebrow="举报已提交"
+          title="我们会在 24 小时内核查"
+          description={reportFeedback}
+          tone="success"
+          icon={<CheckCircleIcon className="status-card__glyph" />}
+          actions={
+            <button type="button" className="button button--ghost" onClick={() => setReportFeedback('')}>
+              我知道了
+            </button>
+          }
+        />
+      ) : null}
+
       <section className="detail-actions">
         <Link to={`/player/${detail.id}`} className="button button--primary button--block">
-          {unlocked ? '继续收听' : '试听前 30 秒'}
+          {playerActionLabel}
         </Link>
-        <button type="button" className="button button--secondary button--block" onClick={handleUnlock}>
-          {actionLabel}
-        </button>
-        <button type="button" className="button button--ghost button--block" onClick={handleAddPlaylist}>
+        <button type="button" className="button button--secondary button--block" onClick={handleAddPlaylist}>
           加入片单
+        </button>
+        <button type="button" className="button button--ghost button--block" onClick={() => setReportOpen(true)}>
+          举报内容
         </button>
       </section>
 
@@ -179,12 +140,24 @@ export function ContentDetailPage() {
       ) : null}
 
       <section className="info-card info-card--memory">
-        <div className="info-card__label">继续追更</div>
-        <p className="info-card__text">试听、单集解锁或从系列入口直接追更。</p>
-        <Link to={`/player/${detail.id}`} className="button button--secondary">
-          继续播放
-        </Link>
+        <div className="info-card__label">收听说明</div>
+        <p className="info-card__text">
+          首版所有公开内容均可免费收听，无需购买。如需举报本条内容存在违规问题，可点击上方「举报内容」按钮，我们会在 24 小时内复核处理。
+        </p>
       </section>
+
+      <UGCReportSheet
+        open={reportOpen}
+        targetType="content"
+        targetId={detail.id}
+        targetTitle={detail.title}
+        onClose={() => setReportOpen(false)}
+        onSubmit={({ targetType, targetId, reason, note }) => {
+          submitReport({ surface: targetType, targetId, targetTitle: detail.title, reason, note })
+          setReportOpen(false)
+          setReportFeedback(`举报理由：${reason}${note ? ` · 已记录补充说明` : ''}`)
+        }}
+      />
     </div>
   )
 }

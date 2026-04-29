@@ -21,32 +21,29 @@ export function AIPage() {
       <TopBar />
 
       <section className="hero-banner hero-banner--ai">
-        <div className="hero-banner__eyebrow">AI 陪伴</div>
+        <div className="hero-banner__eyebrow">AI 陪伴 · 17+</div>
         <h1 className="hero-banner__title">选择角色，继续当前会话</h1>
-        <p className="hero-banner__subtitle">可从最近会话接续，也可切换新的陪伴角色。</p>
+        <p className="hero-banner__subtitle">可从最近会话接续，也可切换新的陪伴角色。AI 回复均由模型生成，仅供陪伴交流。</p>
         <div className="hero-banner__actions">
           <button type="button" className="button button--primary" onClick={() => navigate(`/ai/chat/${primaryRoleId}`)}>
             继续会话
           </button>
-          <Link to="/ai/packs" className="button button--secondary">
-            购买时长
+          <Link to="/support/terms" className="button button--secondary">
+            社区准则
           </Link>
         </div>
       </section>
 
       <StatusCard
-        eyebrow="可用时长"
+        eyebrow="体验时长"
         title={`${aiMinutes} 分钟`}
-        description="每次对话按发送计时，时长不足可随时补充时长包。"
+        description="每次对话按发送计时。当前为体验时长，会员体系上线后会有正式时长方案。"
         icon={<WalletIcon className="status-card__glyph" />}
       />
 
       <section className="page-section page-section--compact">
         <div className="section-header">
           <h2 className="section-header__title">推荐角色</h2>
-          <Link to="/ai/packs" className="section-header__action-link">
-            时长权益
-          </Link>
         </div>
         <div className="ai-role-list">
           {roles.map((role) => (

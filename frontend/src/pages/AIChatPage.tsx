@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { apiBaseUrl } from '../api/client'
+import { AIReportSheet } from '../components/AIReportSheet'
+import { ContentRatingGate } from '../components/ContentRatingGate'
 import { StatusCard } from '../components/FeedbackBlocks'
 import { InfoIcon, WalletIcon } from '../components/Icons'
 import { SubPageHeader } from '../components/SubPageHeader'
@@ -9,6 +11,7 @@ import { loadAIChat } from '../data/source'
 import { useAppData } from '../hooks/useAppData'
 import { useMockSession } from '../hooks/useMockSession'
 import type { AIChatSessionData, AIMessageItem, AIRoleItem } from '../types/app'
+import { checkUserInput, sanitizeAIOutput } from '../utils/aiContentGuard'
 
 const FALLBACK_REPLIES = [
   '我在呢, 你继续说, 我会认真听。',
@@ -89,12 +92,22 @@ interface AIChatViewProps {
 }
 
 function AIChatView({ role, session, navigate }: AIChatViewProps) {
-  const { aiMinutes, consumeAiMinutes, isAuthenticated } = useMockSession()
+  const {
+    aiMinutes,
+    consumeAiMinutes,
+    isAuthenticated,
+    ageAcknowledged,
+    acknowledgeAge,
+    submitReport,
+  } = useMockSession()
 
   const [messages, setMessages] = useState<AIMessageItem[]>(session.messages)
   const [input, setInput] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const [syncedRoleId, setSyncedRoleId] = useState(session.roleId)
+  const [guardNotice, setGuardNotice] = useState('')
+  const [reportTarget, setReportTarget] = useState<AIMessageItem | null>(null)
+  const [reportFeedback, setReportFeedback] = useState('')
   const threadEndRef = useRef<HTMLDivElement | null>(null)
   const abortRef = useRef<AbortController | null>(null)
 
@@ -103,6 +116,9 @@ function AIChatView({ role, session, navigate }: AIChatViewProps) {
     setMessages(session.messages)
     setInput('')
     setIsTyping(false)
+    setGuardNotice('')
+    setReportTarget(null)
+    setReportFeedback('')
     abortRef.current?.abort()
     abortRef.current = null
   }
@@ -120,6 +136,8 @@ function AIChatView({ role, session, navigate }: AIChatViewProps) {
   const outOfMinutes = aiMinutes <= 0
   const lowMinutesWarning = aiMinutes > 0 && aiMinutes <= 3
 
+  const ageGateOpen = useMemo(() => !ageAcknowledged, [ageAcknowledged])
+
   const requestReply = useCallback(
     async (history: AIMessageItem[]) => {
       abortRef.current?.abort()
@@ -128,7 +146,11 @@ function AIChatView({ role, session, navigate }: AIChatViewProps) {
       setIsTyping(true)
       try {
         const reply = await callAIChat(history, role, ctrl.signal)
-        setMessages((prev) => [...prev, createMessage('ai', reply)])
+        const guarded = sanitizeAIOutput(reply)
+        setMessages((prev) => [...prev, createMessage('ai', guarded.text)])
+        if (guarded.intervened) {
+          setGuardNotice('刚才那条回复触发了我们的安全过滤，已自动替换为安全回复。')
+        }
       } catch (err) {
         if ((err as { name?: string })?.name === 'AbortError') return
         setMessages((prev) => [...prev, createMessage('ai', pickFallback())])
@@ -156,7 +178,14 @@ function AIChatView({ role, session, navigate }: AIChatViewProps) {
       }
 
       if (outOfMinutes) {
-        navigate('/ai/packs')
+        setGuardNotice('体验时长已用完，新版本上线后会通过会员体系补充。')
+        return
+      }
+
+      const guard = checkUserInput(text)
+      if (!guard.ok) {
+        setGuardNotice(guard.message ?? '这条消息触发了安全过滤，已为你拦截。')
+        setInput('')
         return
       }
 
@@ -167,6 +196,7 @@ function AIChatView({ role, session, navigate }: AIChatViewProps) {
         return next
       })
       setInput('')
+      setGuardNotice('')
       consumeAiMinutes(1)
     },
     [consumeAiMinutes, isAuthenticated, navigate, outOfMinutes, requestReply],
@@ -175,18 +205,24 @@ function AIChatView({ role, session, navigate }: AIChatViewProps) {
   const handleStarterClick = useCallback(
     (prompt: string) => {
       if (outOfMinutes) {
-        navigate('/ai/packs')
+        setGuardNotice('体验时长已用完，欢迎在「帮助与反馈」里联系我们补充。')
         return
       }
 
       handleSend(prompt)
     },
-    [handleSend, navigate, outOfMinutes],
+    [handleSend, outOfMinutes],
   )
 
   return (
     <div className="page page--detail page--ai-chat">
       <SubPageHeader title="AI 对话" />
+
+      <ContentRatingGate
+        acknowledged={ageAcknowledged}
+        onAcknowledge={acknowledgeAge}
+        onDecline={() => navigate('/')}
+      />
 
       <section className={`detail-hero detail-hero--${session.tone}`}>
         <div className="ai-chat-hero__top">
@@ -203,23 +239,56 @@ function AIChatView({ role, session, navigate }: AIChatViewProps) {
       </section>
 
       <StatusCard
-        eyebrow="剩余时长"
+        eyebrow="安全提示"
+        title="AI 内容由模型生成"
+        description="所有 AI 回复均由模型即时生成，可能与事实不符。我们已开启敏感词过滤；如发现不当回复，请点击该条消息下方的「举报」按钮，开发团队会在 24 小时内核查处理。"
+        tone="default"
+        icon={<InfoIcon className="status-card__glyph" />}
+      />
+
+      <StatusCard
+        eyebrow="剩余体验时长"
         title={`${aiMinutes} 分钟可用`}
         description={
           outOfMinutes
-            ? '时长已用完，补充时长包后即可继续当前会话，角色记忆仍然保留。'
+            ? '体验时长已用完。会员与时长包功能尚未开放，可在「帮助与反馈」里联系我们补充。'
             : lowMinutesWarning
-              ? '剩余时长不多了，建议先补充时长包，避免对话中途被中断。'
-              : '每次发送会消耗 1 分钟，时长不足可在时长包页面补充。'
+              ? '剩余时长不多了，建议合理安排今天的对话节奏。'
+              : '每次发送会消耗 1 分钟。这是我们提供的体验额度，未来会员上线后会有正式的时长方案。'
         }
         tone={outOfMinutes ? 'warning' : lowMinutesWarning ? 'warning' : 'default'}
         icon={<WalletIcon className="status-card__glyph" />}
-        actions={
-          <button type="button" className="button button--secondary" onClick={() => navigate('/ai/packs')}>
-            {outOfMinutes ? '去购买时长' : '查看时长包'}
-          </button>
-        }
       />
+
+      {guardNotice ? (
+        <StatusCard
+          eyebrow="安全过滤"
+          title="刚才的内容已被拦截"
+          description={guardNotice}
+          tone="warning"
+          icon={<InfoIcon className="status-card__glyph" />}
+          actions={
+            <button type="button" className="button button--ghost" onClick={() => setGuardNotice('')}>
+              我知道了
+            </button>
+          }
+        />
+      ) : null}
+
+      {reportFeedback ? (
+        <StatusCard
+          eyebrow="举报已提交"
+          title="我们会在 24 小时内核查"
+          description={reportFeedback}
+          tone="success"
+          icon={<InfoIcon className="status-card__glyph" />}
+          actions={
+            <button type="button" className="button button--ghost" onClick={() => setReportFeedback('')}>
+              我知道了
+            </button>
+          }
+        />
+      ) : null}
 
       <section className="info-card info-card--memory">
         <div className="info-card__label">当前会话状态</div>
@@ -252,7 +321,17 @@ function AIChatView({ role, session, navigate }: AIChatViewProps) {
               key={message.id}
               className={message.speaker === 'ai' ? 'chat-bubble chat-bubble--ai' : 'chat-bubble chat-bubble--user'}
             >
-              {message.text}
+              <div className="chat-bubble__text">{message.text}</div>
+              {message.speaker === 'ai' ? (
+                <button
+                  type="button"
+                  className="chat-bubble__report"
+                  aria-label="举报这条回复"
+                  onClick={() => setReportTarget(message)}
+                >
+                  举报
+                </button>
+              ) : null}
             </div>
           ))}
           {isTyping ? (
@@ -285,21 +364,6 @@ function AIChatView({ role, session, navigate }: AIChatViewProps) {
         </div>
       </section>
 
-      {outOfMinutes ? (
-        <StatusCard
-          eyebrow="时长耗尽"
-          title="当前会话需要补充时长"
-          description="购买时长包后会立即到账，角色记忆和偏好不会因为时长耗尽而丢失。"
-          tone="warning"
-          icon={<InfoIcon className="status-card__glyph" />}
-          actions={
-            <Link to="/ai/packs" className="button button--primary">
-              购买时长包
-            </Link>
-          }
-        />
-      ) : null}
-
       <form
         className="chat-composer"
         onSubmit={(event) => {
@@ -311,27 +375,46 @@ function AIChatView({ role, session, navigate }: AIChatViewProps) {
           className="chat-composer__input"
           value={input}
           onChange={(event) => setInput(event.target.value)}
-          placeholder={outOfMinutes ? '时长已耗尽，先去购买时长包' : '说点什么，发送会消耗 1 分钟'}
-          disabled={outOfMinutes}
+          placeholder={ageGateOpen ? '请先确认年龄分级' : outOfMinutes ? '体验时长已用完' : '说点什么，发送会消耗 1 分钟'}
+          disabled={outOfMinutes || ageGateOpen}
           aria-label="聊天输入"
         />
         <button
           type="submit"
           className="button button--primary chat-composer__send"
-          disabled={outOfMinutes || !input.trim()}
+          disabled={outOfMinutes || ageGateOpen || !input.trim()}
         >
           发送
         </button>
       </form>
 
       <section className="detail-actions">
-        <Link to="/ai/packs" className="button button--secondary button--block">
-          {outOfMinutes ? '去购买时长' : '查看时长权益'}
-        </Link>
-        <Link to="/ai" className="button button--ghost button--block">
+        <Link to="/ai" className="button button--secondary button--block">
           切换角色
         </Link>
+        <Link to="/support/help" className="button button--ghost button--block">
+          帮助与反馈
+        </Link>
       </section>
+
+      <AIReportSheet
+        open={Boolean(reportTarget)}
+        targetText={reportTarget?.text ?? ''}
+        onClose={() => setReportTarget(null)}
+        onSubmit={(reason, note) => {
+          if (reportTarget) {
+            submitReport({
+              surface: 'ai',
+              targetId: reportTarget.id,
+              targetTitle: `${role.name} 的 AI 回复`,
+              reason,
+              note,
+            })
+          }
+          setReportTarget(null)
+          setReportFeedback(`举报理由：${reason}${note ? ' · 已记录补充说明' : ''}`)
+        }}
+      />
     </div>
   )
 }

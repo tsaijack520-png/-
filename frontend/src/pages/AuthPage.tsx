@@ -262,7 +262,7 @@ export function AuthPage() {
             <button type="button" className="identity-card identity-card--listener" onClick={() => handleSelectRole('listener')}>
               <div className="identity-card__eyebrow">听众</div>
               <div className="identity-card__title">我想听故事</div>
-              <p className="identity-card__text">收听内容、购买单集、开通会员与 AI 陪伴。</p>
+              <p className="identity-card__text">收听内容、收藏片单，体验 AI 陪伴对话。</p>
             </button>
             <button type="button" className="identity-card identity-card--creator" onClick={() => handleSelectRole('creator')}>
               <div className="identity-card__eyebrow">创作者</div>

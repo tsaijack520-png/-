@@ -23,6 +23,20 @@ const orderStorageKey = 'earbian_orders'
 const playlistStorageKey = 'earbian_playlist'
 const unlockedContentStorageKey = 'earbian_unlocked_contents'
 const aiMinutesStorageKey = 'earbian_ai_minutes'
+const blockedAnchorsStorageKey = 'earbian_blocked_anchors'
+const ageAcknowledgedStorageKey = 'earbian_age_acknowledged'
+const reportLogStorageKey = 'earbian_report_log'
+
+export interface ReportLogEntry {
+  id: string
+  surface: 'ai' | 'content' | 'anchor' | 'comment'
+  targetId: string
+  targetTitle: string
+  reason: string
+  note: string
+  status: '受理中' | '已处理'
+  submittedAt: string
+}
 
 function getStorage() {
   if (typeof window === 'undefined') {
@@ -108,6 +122,9 @@ export function useMockSession() {
   const [playlistItems, setPlaylistItems] = useState<PlaylistItem[]>(() => readJson(playlistStorageKey, profilePlaylistAllItems))
   const [unlockedContentIds, setUnlockedContentIds] = useState<string[]>(() => readJson(unlockedContentStorageKey, []))
   const [aiMinutes, setAiMinutes] = useState<number>(() => readJson(aiMinutesStorageKey, aiHighlights.remainingMinutes))
+  const [blockedAnchorIds, setBlockedAnchorIds] = useState<string[]>(() => readJson(blockedAnchorsStorageKey, []))
+  const [ageAcknowledged, setAgeAcknowledged] = useState<boolean>(() => readJson(ageAcknowledgedStorageKey, false))
+  const [reportLog, setReportLog] = useState<ReportLogEntry[]>(() => readJson(reportLogStorageKey, []))
 
   useEffect(() => {
     const handleStorageChange = () => {
@@ -117,6 +134,9 @@ export function useMockSession() {
       setPlaylistItems(readJson(playlistStorageKey, profilePlaylistAllItems))
       setUnlockedContentIds(readJson(unlockedContentStorageKey, []))
       setAiMinutes(readJson(aiMinutesStorageKey, aiHighlights.remainingMinutes))
+      setBlockedAnchorIds(readJson(blockedAnchorsStorageKey, []))
+      setAgeAcknowledged(readJson(ageAcknowledgedStorageKey, false))
+      setReportLog(readJson(reportLogStorageKey, []))
     }
 
     window.addEventListener('storage', handleStorageChange)
@@ -358,6 +378,52 @@ export function useMockSession() {
     [unlockedContentIds, user?.vipStatus.subscriptionActive],
   )
 
+  const syncBlockedAnchorIds = useCallback((next: string[]) => {
+    writeJson(blockedAnchorsStorageKey, next)
+    setBlockedAnchorIds(next)
+  }, [])
+
+  const blockAnchor = useCallback(
+    (anchorId: string) => {
+      if (blockedAnchorIds.includes(anchorId)) return
+      syncBlockedAnchorIds([anchorId, ...blockedAnchorIds])
+    },
+    [blockedAnchorIds, syncBlockedAnchorIds],
+  )
+
+  const unblockAnchor = useCallback(
+    (anchorId: string) => {
+      syncBlockedAnchorIds(blockedAnchorIds.filter((id) => id !== anchorId))
+    },
+    [blockedAnchorIds, syncBlockedAnchorIds],
+  )
+
+  const isAnchorBlocked = useCallback(
+    (anchorId: string) => blockedAnchorIds.includes(anchorId),
+    [blockedAnchorIds],
+  )
+
+  const acknowledgeAge = useCallback(() => {
+    writeJson(ageAcknowledgedStorageKey, true)
+    setAgeAcknowledged(true)
+  }, [])
+
+  const submitReport = useCallback(
+    (entry: Omit<ReportLogEntry, 'id' | 'status' | 'submittedAt'>) => {
+      const next: ReportLogEntry = {
+        ...entry,
+        id: `report-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        status: '受理中',
+        submittedAt: formatNow(),
+      }
+      const merged = [next, ...reportLog].slice(0, 100)
+      writeJson(reportLogStorageKey, merged)
+      setReportLog(merged)
+      return next
+    },
+    [reportLog],
+  )
+
   const profileSummary = useMemo(() => {
     return {
       purchasedCount: orders.filter((order) => order.type === 'content' || order.type === 'subscription').length,
@@ -387,5 +453,13 @@ export function useMockSession() {
     purchaseCreditPack,
     purchaseAiPack,
     consumeAiMinutes,
+    blockedAnchorIds,
+    blockAnchor,
+    unblockAnchor,
+    isAnchorBlocked,
+    ageAcknowledged,
+    acknowledgeAge,
+    reportLog,
+    submitReport,
   }
 }

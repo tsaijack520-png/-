@@ -17,6 +17,8 @@ export function CreatorUploadPage() {
   const [scene, setScene] = useState<(typeof sceneFilters)[number]>(sceneFilters[0])
   const [submitted, setSubmitted] = useState(false)
   const [fileNotice, setFileNotice] = useState<string>('')
+  const [policyAccepted, setPolicyAccepted] = useState(false)
+  const [policyError, setPolicyError] = useState('')
   const isPreview = !isCreator
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -27,6 +29,12 @@ export function CreatorUploadPage() {
       return
     }
 
+    if (!policyAccepted) {
+      setPolicyError('请先确认你已阅读并承诺遵守社区准则。')
+      return
+    }
+
+    setPolicyError('')
     addCreatorUpload({
       title: title.trim() || '未命名草稿',
       role,
@@ -46,7 +54,7 @@ export function CreatorUploadPage() {
             <div className="info-card__label">听众视角</div>
             <div className="info-card__value info-card__value--sm">切换为创作者后可发布内容</div>
           </div>
-          <p className="info-card__text">在"账号与设置"中切换为创作者身份，即可开始上传并提交草稿。</p>
+          <p className="info-card__text">在「账号与设置」中切换为创作者身份，即可开始上传并提交草稿。</p>
           <Link to="/me/settings" className="button button--secondary">
             去切换身份
           </Link>
@@ -57,16 +65,21 @@ export function CreatorUploadPage() {
         <StatusCard
           eyebrow="草稿已提交"
           title="可回到工作台继续完善"
-          description="内容会进入审核流程，通过后会在首页和分类中展示。"
+          description="内容会进入审核流程，通过后会在首页和分类中展示。审核通常在 24 小时内完成。"
           tone="success"
           icon={<CheckCircleIcon className="status-card__glyph" />}
         />
       ) : (
         <StatusCard
           eyebrow="发布说明"
-          title="草稿提交后进入审核"
-          description="可补充标题、简介、角色与场景标签，提交后在工作台查看审核进度。"
+          title="所有内容须先经审核才能上架"
+          description="耳边对色情、暴力、自残、伤害未成年人、歧视等内容采取零容忍政策。涉嫌违规的草稿会被驳回，多次违规账号将被封禁。"
           icon={<InfoIcon className="status-card__glyph" />}
+          actions={
+            <Link to="/support/terms" className="button button--ghost">
+              查看社区准则
+            </Link>
+          }
         />
       )}
 
@@ -128,6 +141,24 @@ export function CreatorUploadPage() {
             </button>
           </div>
         </section>
+
+        <label className={policyError ? 'creator-policy-check creator-policy-check--error' : 'creator-policy-check'}>
+          <input
+            type="checkbox"
+            checked={policyAccepted}
+            onChange={(event) => {
+              setPolicyAccepted(event.target.checked)
+              if (event.target.checked) {
+                setPolicyError('')
+              }
+            }}
+            disabled={isPreview}
+          />
+          <span>
+            我已阅读 <Link to="/support/terms" className="text-link">《社区准则与用户协议》</Link>，承诺所传内容不含色情、暴力、自残、伤害未成年人、歧视、骚扰或其他违法违规信息，并对内容真实性负责。
+          </span>
+        </label>
+        {policyError ? <div className="auth-field__error">{policyError}</div> : null}
 
         <button type="submit" className="button button--primary button--block">
           {isPreview ? '去切换为创作者' : '提交草稿'}

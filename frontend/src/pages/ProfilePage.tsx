@@ -1,8 +1,6 @@
 import { Link } from 'react-router-dom'
 
 import { MenuCard, PosterCard } from '../components/ContentBlocks'
-import { StatusCard } from '../components/FeedbackBlocks'
-import { WalletIcon } from '../components/Icons'
 import { useMockSession } from '../hooks/useMockSession'
 import { SectionHeader } from '../components/SectionHeader'
 
@@ -10,28 +8,27 @@ export function ProfilePage() {
   const { user, isAuthenticated, isCreator, playlistItems, profileSummary } = useMockSession()
   const profileAssets = [
     {
-      id: 'vip',
-      label: 'VIP 会员',
-      value: user?.vipStatus.subscriptionActive ? '已开通' : '未开通',
-      tone: 'gold' as const,
-      to: '/me/vip',
-    },
-    {
       id: 'ai-time',
       label: 'AI 陪伴时长',
       value: `${profileSummary.aiMinutes} 分钟`,
       tone: 'accent' as const,
-      to: '/ai/packs',
+      to: '/ai',
     },
     {
-      id: 'orders',
-      label: '订单记录',
+      id: 'playlist',
+      label: '我的片单',
+      value: `${profileSummary.playlistCount} 条`,
+      to: '/me/playlist',
+    },
+    {
+      id: 'records',
+      label: '收听 / 解锁记录',
       value: '查看全部',
       to: '/me/orders',
     },
     {
       id: 'settings',
-      label: '账号与绑定',
+      label: '账号与设置',
       value: '头像 / 手机 / 邮箱 / Apple',
       to: '/me/settings',
     },
@@ -78,7 +75,7 @@ export function ProfilePage() {
               </span>
             </div>
             <div className="profile-summary__meta">
-              已购内容 {profileSummary.purchasedCount} · 片单 {profileSummary.playlistCount} · AI 时长 {profileSummary.aiMinutes} 分钟
+              片单 {profileSummary.playlistCount} · AI 体验时长 {profileSummary.aiMinutes} 分钟
             </div>
           </div>
         </div>
@@ -108,22 +105,13 @@ export function ProfilePage() {
       </section>
 
       <section className="page-section page-section--compact">
-        <SectionHeader title="权益与资产" actionLabel="" />
+        <SectionHeader title="账户与资产" actionLabel="" />
         <div className="menu-stack">
           {profileAssets.map((item) => (
             <MenuCard key={item.id} label={item.label} value={item.value} tone={item.tone} to={item.to} />
           ))}
         </div>
       </section>
-
-      {isCreator ? null : (
-        <StatusCard
-          eyebrow="账户余额"
-          title={`${user.vipStatus.creditBalance} 点`}
-          description="可用于解锁单集或兑换 AI 陪伴时长。"
-          icon={<WalletIcon className="status-card__glyph" />}
-        />
-      )}
     </div>
   )
 }

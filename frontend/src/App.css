@@ -1982,3 +1982,356 @@
   padding: 8px 16px;
   font-size: 13px;
 }
+
+/* ========== iOS 合规相关组件（17+ 年龄门 / 举报底单 / 拉黑列表） ========== */
+
+.rating-gate {
+  position: fixed;
+  inset: 0;
+  background: rgba(54, 30, 26, 0.62);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 1000;
+  padding: 24px 16px env(safe-area-inset-bottom, 16px);
+}
+
+@media (min-height: 600px) {
+  .rating-gate {
+    align-items: center;
+  }
+}
+
+.rating-gate__panel {
+  background: #fffaf3;
+  border-radius: 24px;
+  padding: 24px;
+  max-width: 420px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 24px 60px rgba(60, 32, 28, 0.32);
+}
+
+.rating-gate__head {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.rating-gate__icon {
+  width: 32px;
+  height: 32px;
+  color: #d8948c;
+  flex-shrink: 0;
+}
+
+.rating-gate__eyebrow {
+  font-size: 12px;
+  color: #c87a72;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.rating-gate__title {
+  font-size: 18px;
+  color: #4d2f29;
+  margin: 0;
+}
+
+.rating-gate__text {
+  font-size: 14px;
+  color: #6b4d45;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.rating-gate__list {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 13px;
+  color: #6b4d45;
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rating-gate__check {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 13px;
+  color: #4d2f29;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.rating-gate__check input {
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+.rating-gate__actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.rating-gate__actions .button {
+  min-height: 40px;
+  padding: 10px 18px;
+}
+
+.action-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+}
+
+.action-sheet__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(40, 22, 19, 0.5);
+}
+
+.action-sheet__panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #fffaf3;
+  border-radius: 24px 24px 0 0;
+  padding: 20px 20px calc(env(safe-area-inset-bottom, 0px) + 20px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 -16px 40px rgba(60, 32, 28, 0.24);
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.action-sheet__head {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.action-sheet__icon {
+  width: 28px;
+  height: 28px;
+  color: #d8948c;
+  flex-shrink: 0;
+}
+
+.action-sheet__eyebrow {
+  font-size: 12px;
+  color: #c87a72;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.action-sheet__title {
+  font-size: 16px;
+  color: #4d2f29;
+  margin: 0;
+}
+
+.action-sheet__quote {
+  background: rgba(232, 199, 186, 0.32);
+  border-left: 3px solid #d8948c;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #6b4d45;
+  line-height: 1.5;
+  margin: 0;
+  border-radius: 8px;
+}
+
+.action-sheet__group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.action-sheet__label {
+  font-size: 13px;
+  color: #4d2f29;
+  font-weight: 500;
+}
+
+.action-sheet__options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.action-sheet__option {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(219, 188, 176, 0.4);
+  background: #fffdfa;
+  font-size: 13px;
+  color: #4d2f29;
+  cursor: pointer;
+}
+
+.action-sheet__option--active {
+  border-color: rgba(216, 148, 140, 0.9);
+  background: rgba(232, 199, 186, 0.24);
+}
+
+.action-sheet__textarea {
+  width: 100%;
+  border: 1px solid rgba(219, 188, 176, 0.76);
+  border-radius: 12px;
+  background: #fffdfa;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #6b4d45;
+  resize: vertical;
+  min-height: 64px;
+  font-family: inherit;
+}
+
+.action-sheet__textarea:focus {
+  outline: none;
+  border-color: rgba(216, 148, 140, 0.9);
+}
+
+.action-sheet__hint {
+  font-size: 12px;
+  color: #9f7f77;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.action-sheet__actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.action-sheet__actions .button {
+  min-height: 40px;
+  padding: 10px 18px;
+}
+
+.chat-bubble {
+  position: relative;
+}
+
+.chat-bubble__text {
+  display: block;
+}
+
+.chat-bubble__report {
+  position: absolute;
+  right: 8px;
+  bottom: 4px;
+  background: transparent;
+  border: none;
+  font-size: 11px;
+  color: rgba(107, 77, 69, 0.5);
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.chat-bubble__report:hover {
+  color: #c04c4c;
+}
+
+.chat-bubble--user .chat-bubble__report {
+  display: none;
+}
+
+.creator-policy-check {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 13px;
+  color: #4d2f29;
+  line-height: 1.55;
+  padding: 12px;
+  background: rgba(232, 199, 186, 0.18);
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.creator-policy-check input {
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+.creator-policy-check--error {
+  background: rgba(192, 76, 76, 0.08);
+  border: 1px solid rgba(192, 76, 76, 0.28);
+}
+
+.menu-card--row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.menu-card--row .button {
+  min-height: 32px;
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.report-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #fffdfa;
+  border: 1px solid rgba(219, 188, 176, 0.4);
+  border-radius: 14px;
+}
+
+.report-row__title {
+  font-size: 14px;
+  color: #4d2f29;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.report-row__meta {
+  font-size: 12px;
+  color: #9f7f77;
+  line-height: 1.5;
+}
+
+.report-row__status {
+  font-size: 12px;
+  color: #c87a72;
+  background: rgba(232, 199, 186, 0.32);
+  padding: 4px 10px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.settings-empty-line {
+  padding: 12px 0;
+}
+
+.text-link {
+  color: #c04c4c;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.auth-field__error {
+  font-size: 12px;
+  color: #c04c4c;
+  margin-top: -4px;
+}

@@ -174,12 +174,12 @@ function PlayerView({ bundle, navigate, addPlaylistItem, hasUnlockedContent }: P
         <StatusCard
           eyebrow="试听模式"
           title={`前 ${Math.min(PREVIEW_SECONDS, totalSeconds)} 秒免费试听`}
-          description="开通会员或单集解锁后可收听完整内容。"
+          description="完整版会在会员体系上线后开放，届时通过 Apple 内购统一处理。"
           tone="warning"
           icon={<InfoIcon className="status-card__glyph" />}
           actions={
             <Link to={`/content/${player.contentId}`} className="button button--secondary">
-              解锁完整版
+              返回内容详情
             </Link>
           }
         />
